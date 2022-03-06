@@ -9,8 +9,8 @@ import "./interfaces/IPlanets.sol";
 import "./interfaces/ISanctis.sol";
 
 contract Commanders is ICommanders, ERC721Enumerable, Ownable {
-    mapping(uint256 => Citizen) private _commanders;
-    uint256 private _createdCitizens;
+    mapping(uint256 => Commander) private _commanders;
+    uint256 private _createdCommanders;
 
     ISanctis public sanctis;
 
@@ -19,17 +19,15 @@ contract Commanders is ICommanders, ERC721Enumerable, Ownable {
         sanctis = newSanctis;
     }
 
-    function create(
-        string memory name,
-        uint256 raceId
-    ) external {
-        _createdCitizens++;
-        _mint(msg.sender, _createdCitizens);
-        _commanders[_createdCitizens] = Citizen({
+    function create(string memory name, uint256 raceId) external {
+        require(validateName(name), "Commanders: Invalid name");
+        _createdCommanders++;
+        _commanders[_createdCommanders] = Commander({
             name: name,
             raceId: raceId,
             onboarding: 0
         });
+        _mint(msg.sender, _createdCommanders);
     }
 
     function onboard(uint256 citizenId) external {
@@ -47,15 +45,39 @@ contract Commanders is ICommanders, ERC721Enumerable, Ownable {
     }
 
     /* ========== CITIZENSHIP ========== */
-    function citizen(uint256 citizenId)
-        external
-        view
-        returns (Citizen memory)
-    {
-        return _commanders[citizenId];
+    function commander(uint256 commanderId) external view returns (Commander memory) {
+        return _commanders[commanderId];
     }
 
     function created() external view returns (uint256) {
-        return _createdCitizens;
+        return _createdCommanders;
+    }
+
+    // @dev Check if the name string is valid (Alphanumeric and spaces without leading or trailing space)
+    function validateName(string memory str) public pure returns (bool) {
+        bytes memory b = bytes(str);
+        if (b.length < 1) return false;
+        if (b.length > 25) return false; // Cannot be longer than 25 characters
+        if (b[0] == 0x20) return false; // Leading space
+        if (b[b.length - 1] == 0x20) return false; // Trailing space
+
+        bytes1 last_char = b[0];
+
+        for (uint256 i; i < b.length; i++) {
+            bytes1 char = b[i];
+
+            if (char == 0x20 && last_char == 0x20) return false; // Cannot contain continous spaces
+
+            if (
+                !(char >= 0x30 && char <= 0x39) && //9-0
+                !(char >= 0x41 && char <= 0x5A) && //A-Z
+                !(char >= 0x61 && char <= 0x7A) && //a-z
+                !(char == 0x20) //space
+            ) return false;
+
+            last_char = char;
+        }
+
+        return true;
     }
 }

@@ -4,10 +4,10 @@ pragma solidity ^0.8.9;
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
 interface ICommanders is IERC721Metadata {
-    error CitizenZero();
+    error CommanderZero();
     error NotTheCitadel(address caller);
 
-    struct Citizen {
+    struct Commander {
         /// @notice Name of the citizen
         string name;
         /// @notice Id of the race
@@ -20,9 +20,9 @@ interface ICommanders is IERC721Metadata {
 
     function created() external view returns (uint256);
 
-    function onboard(uint256 tokenId) external;
+    function onboard(uint256 commanderId) external;
 
-    function offboard(uint256 tokenId) external;
+    function offboard(uint256 commanderId) external;
 
-    function citizen(uint256 citizenId) external view returns (Citizen memory);
+    function commander(uint256 commanderId) external view returns (Commander memory);
 }

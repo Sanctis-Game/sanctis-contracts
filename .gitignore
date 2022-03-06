@@ -1,2 +1,13 @@
 cache/
 out/
+key.json
+key.txt
+
+# Added by cargo
+
+target
+
+
+# Added by cargo
+
+/target
