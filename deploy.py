@@ -32,7 +32,7 @@ contracts = [
     ("SHIPREG", "src/ShipRegistry.sol:ShipRegistry"),
     ("HUMANS", "src/races/Humans.sol:Humans"),
     ("IRON", "src/resources/Iron.sol:Iron"),
-    ("EXTRACTORS", "src/infrastructures/Extractors.sol:Extractors"),
+    ("IRONEXTRACTOR", "src/infrastructures/Extractors.sol:Extractors"),
 ]
 
 deployer = Deployer(
@@ -41,6 +41,7 @@ deployer = Deployer(
     contracts,
     is_legacy=True,  # for legacy transactions
     debug=True,  # if True, prints the calling commands and raw output
+    name="test1",
 )
 
 path = [
@@ -84,7 +85,7 @@ path = [
     (Deployer.DEPLOY, "IRON", ["$SANCTIS"]),
     (
         Deployer.DEPLOY,
-        "EXTRACTORS",
+        "IRONEXTRACTOR",
         [
             "$SANCTIS",
             "1",  # Resource ID

@@ -1,6 +1,7 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.10;
 
+import "./Cost.sol";
 import "./IShip.sol";
 
 interface ITransporters is IShip {
@@ -10,7 +11,7 @@ interface ITransporters is IShip {
         /// @notice Speed of the transporter in unit per block
         uint256 speed;
         /// @notice Resources needed to build the transporter
-        uint256[][] costs;
+        Cost[] costs;
     }
 
     function transport(

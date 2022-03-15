@@ -17,7 +17,7 @@ import "./Ship.sol";
 contract Transporters is ITransporters, Ship {
     struct ShipsInFleet {
         uint256 amount;
-        uint256[][] transportedResources;
+        Cost[] transportedResources;
     }
 
     uint256 internal _capacity;
@@ -26,7 +26,7 @@ contract Transporters is ITransporters, Ship {
         ISanctis newSanctis,
         uint256 newCapacity,
         uint256 speed,
-        uint256[2][10] memory costs
+        Cost[] memory costs
     ) Ship(newSanctis, speed, costs) {
         _capacity = newCapacity;
     }

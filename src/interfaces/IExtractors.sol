@@ -1,15 +1,17 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.10;
 
 import "./IInfrastructure.sol";
+import "./Cost.sol";
 
 interface IExtractors is IInfrastructure {
     error ExtractorExistence(uint256 planetId);
-    
+
     struct Extractor {
         uint256 level;
         uint256 productionPerBlock;
-        uint256[][] nextCosts;
+        uint256 lastHarvest;
+        Cost[] nextCosts;
         uint256 nextUpgrade;
     }
 

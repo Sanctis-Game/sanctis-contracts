@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.10;
 
 interface IGalacticStandards {
     /// @notice Types of assets subject to Sanctis governance

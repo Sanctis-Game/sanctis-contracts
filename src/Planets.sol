@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.10;
 
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
@@ -31,7 +31,9 @@ contract Planets is IPlanets, Ownable {
         credits.approve(sanctis.council(), colonizationCost);
     }
 
-    function create(uint256 planetId) external {
+    function create(uint256 planetId) public {
+        if(planetId > type(uint256).max)
+            revert InvalidPlanet({planet: planetId});
         if (_planets[planetId].status != PlanetStatus.Unknown)
             revert PlanetAlreadyExists({planet: planetId});
 
@@ -43,15 +45,17 @@ contract Planets is IPlanets, Ownable {
         _planets[uint256(planetId)] = Planet({
             status: PlanetStatus.Uncharted,
             ruler: 0,
-            x: uint80(planetId & 0xFFFFF),
-            y: uint80((planetId >> 80) & 0xFFFFF),
-            z: uint80((planetId >> 160) & 0xFFFFF),
+            x: int80(uint80(planetId & 0xFFFFF)),
+            y: int80(uint80((planetId >> 80) & 0xFFFFF)),
+            z: int80(uint80((planetId >> 160) & 0xFFFFF)),
             humidity: humidity
         });
     }
 
     function colonize(uint256 ruler, uint256 planetId) external {
-        if (_planets[planetId].status != PlanetStatus.Uncharted)
+        if  (_planets[planetId].status == PlanetStatus.Unknown)
+            create(planetId);
+        else if (_planets[planetId].status != PlanetStatus.Uncharted)
             revert PlanetAlreadyColonized({
                 planet: planetId,
                 status: _planets[planetId].status
@@ -66,7 +70,7 @@ contract Planets is IPlanets, Ownable {
 
         sanctis.credits().transferFrom(
             msg.sender,
-            sanctis.council(),
+            sanctis.parliamentExecutor(),
             colonizationCost
         );
     }
@@ -82,9 +86,9 @@ contract Planets is IPlanets, Ownable {
     function commanderPlanetByIndex(uint256 commanderId, uint256 index)
         external
         view
-        returns (Planet memory)
+        returns (uint256)
     {
-        return _planets[_commanderPlanets[commanderId].at(index)];
+        return _commanderPlanets[commanderId].at(index);
     }
 
     function distance(uint256 from, uint256 to)
@@ -94,7 +98,10 @@ contract Planets is IPlanets, Ownable {
     {
         Planet memory a = _planets[from];
         Planet memory b = _planets[to];
-        return FixedPointMathLib.sqrt((b.x - a.x)**2 + (b.y - a.y)**2 + (b.z - a.z)**2);
+        return
+            FixedPointMathLib.sqrt(
+                uint80((b.x - a.x)**2) + uint80((b.y - a.y)**2) + uint80((b.z - a.z)**2)
+            );
     }
 
     function _isCreated(uint256 planetId) external view returns (bool) {

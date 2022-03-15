@@ -1,6 +1,7 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.10;
 
+import "./Cost.sol";
 import "./ISanctis.sol";
 
 interface IShip {
@@ -12,7 +13,7 @@ interface IShip {
 
     function id() external view returns (uint256);
 
-    function unitCosts() external view returns (uint256[][] memory);
+    function unitCosts() external view returns (Cost[] memory);
 
     function reserve(uint256 planetId) external view returns (uint256);
 

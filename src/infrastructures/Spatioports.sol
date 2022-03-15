@@ -1,10 +1,11 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.10;
 
 import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
+import "../interfaces/Cost.sol";
 import "../interfaces/ISanctis.sol";
 import "../interfaces/IResource.sol";
 import "../interfaces/ISpatioports.sol";
@@ -22,8 +23,8 @@ contract Spatioports is ISpatioports {
 
     uint256 internal _id;
     uint256 internal _upgradeDelay;
-    uint256[][] internal _baseCosts;
-    uint256[][] internal _costRates;
+    Cost[] internal _baseCosts;
+    Cost[] internal _costRates;
 
     /**
      * @dev _cBase and _cRates are array of couple `(resourceId, amount)`
@@ -33,17 +34,16 @@ contract Spatioports is ISpatioports {
     constructor(
         ISanctis _sanctis,
         uint256 _delay,
-        uint256[2][10] memory _cBase,
-        uint256[2][10] memory _cRates
+        Cost[] memory _cBase,
+        Cost[] memory _cRates
     ) {
         sanctis = _sanctis;
         _upgradeDelay = _delay;
 
-        uint256 i = 0;
-        while(i < 10 && _cBase[i][0] != 0) {
+        uint256 i;
+        for (; i < _cBase.length; ++i) {
             _baseCosts.push(_cBase[i]);
             _costRates.push(_cRates[i]);
-            i++;
         }
 
         _id = sanctis.infrastructureRegistry().create(this);
@@ -90,12 +90,12 @@ contract Spatioports is ISpatioports {
             lastHarvest: block.number
         });
 
-        uint256[][] memory costs = _baseCosts;
+        Cost[] memory costs = _baseCosts;
         for (uint256 i = 0; i < costs.length; i++) {
-            sanctis.resourceRegistry().resource(costs[i][0]).burn(
+            sanctis.resourceRegistry().resource(costs[i].resourceId).burn(
                 _id,
                 planetId,
-                costs[i][1]
+                costs[i].quantity
             );
         }
     }
@@ -110,12 +110,14 @@ contract Spatioports is ISpatioports {
         e.level += 1;
         e.lastUpgrade = block.number;
 
-        uint256[][] memory costs = _baseCosts;
+        Cost[] memory costs = _baseCosts;
         for (uint256 i = 0; i < costs.length; i++) {
-            sanctis.resourceRegistry().resource(costs[i][0]).burn(
+            sanctis.resourceRegistry().resource(costs[i].resourceId).burn(
                 _id,
                 planetId,
-                costs[i][1] + _costRates[i][1] * _spatioports[planetId].level
+                costs[i].quantity +
+                    _costRates[i].quantity *
+                    _spatioports[planetId].level
             );
         }
     }
@@ -131,14 +133,14 @@ contract Spatioports is ISpatioports {
     function costsNextLevel(uint256 planetId)
         public
         view
-        returns (uint256[][] memory)
+        returns (Cost[] memory)
     {
         uint256 extractorLevel = _spatioports[planetId].level;
-        uint256[][] memory costs = _baseCosts;
-        uint256[][] memory rates = _costRates;
+        Cost[] memory costs = _baseCosts;
+        Cost[] memory rates = _costRates;
 
         for (uint256 j = 0; j < _baseCosts.length; j++) {
-            costs[j][1] += extractorLevel * rates[j][1];
+            costs[j].quantity += extractorLevel * rates[j].quantity;
         }
 
         return costs;
@@ -161,16 +163,17 @@ contract Spatioports is ISpatioports {
     }
 
     function _planetHasReserves(uint256 planetId) internal view {
-        uint256[][] memory costs = costsNextLevel(planetId);
+        Cost[] memory costs = costsNextLevel(planetId);
         for (uint256 i = 0; i < costs.length; i++) {
             if (
-                sanctis.resourceRegistry().resource(costs[i][0]).reserve(
-                    planetId
-                ) < costs[i][1]
+                sanctis
+                    .resourceRegistry()
+                    .resource(costs[i].resourceId)
+                    .reserve(planetId) < costs[i].quantity
             )
                 revert NotEnoughResource({
                     planetId: planetId,
-                    resourceId: costs[i][0]
+                    resourceId: costs[i].resourceId
                 });
         }
     }

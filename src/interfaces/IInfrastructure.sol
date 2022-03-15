@@ -1,5 +1,7 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.10;
+
+import "./Cost.sol";
 
 interface IInfrastructure {
     error ResourceNotOnPlanet(uint256 planetId, uint256 resourceId);
@@ -18,5 +20,5 @@ interface IInfrastructure {
     function costsNextLevel(uint256 planetId)
         external
         view
-        returns (uint256[][] memory);
+        returns (Cost[] memory);
 }

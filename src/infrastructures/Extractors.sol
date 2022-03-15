@@ -1,10 +1,11 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.10;
 
 import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
+import "../interfaces/Cost.sol";
 import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
@@ -30,8 +31,8 @@ contract Extractors is IExtractors {
     uint256 private _rewardsRate;
     uint256 private _levelFactor;
     uint256 private _upgradeDelay;
-    uint256[][] private _baseCosts;
-    uint256[][] private _costRates;
+    Cost[] private _baseCosts;
+    Cost[] private _costRates;
 
     /**
      * @dev _cBase and _cRates are array of couple `(resourceId, amount)`
@@ -44,8 +45,8 @@ contract Extractors is IExtractors {
         uint256 _rBase,
         uint256 _rRate,
         uint256 _delay,
-        uint256[2][10] memory _cBase,
-        uint256[2][10] memory _cRates
+        Cost[] memory _cBase,
+        Cost[] memory _cRates
     ) {
         if (_resourceId == 0) revert ResourceZero();
 
@@ -55,11 +56,10 @@ contract Extractors is IExtractors {
         _rewardsRate = _rRate;
         _upgradeDelay = _delay;
 
-        uint256 i = 0;
-        while (i < 10 && _cBase[i][0] != 0) {
+        uint256 i;
+        for (; i < _cBase.length; ++i) {
             _baseCosts.push(_cBase[i]);
             _costRates.push(_cRates[i]);
-            i++;
         }
 
         _id = sanctis.infrastructureRegistry().create(this);
@@ -97,7 +97,8 @@ contract Extractors is IExtractors {
             Extractor({
                 level: e.level,
                 productionPerBlock: _production(e.level),
-                nextCosts: this.costsNextLevel(planetId),
+                lastHarvest: e.lastHarvest,
+                nextCosts: costsNextLevel(planetId),
                 nextUpgrade: e.lastUpgrade + _upgradeDelay**e.level
             });
     }
@@ -118,12 +119,12 @@ contract Extractors is IExtractors {
             lastHarvest: block.number
         });
 
-        uint256[][] memory costs = _baseCosts;
+        Cost[] memory costs = _baseCosts;
         for (uint256 i = 0; i < costs.length; i++) {
-            sanctis.resourceRegistry().resource(costs[i][0]).burn(
+            sanctis.resourceRegistry().resource(costs[i].resourceId).burn(
                 _id,
                 planetId,
-                costs[i][1]
+                costs[i].quantity
             );
         }
     }
@@ -139,12 +140,14 @@ contract Extractors is IExtractors {
         e.lastUpgrade = block.number;
         e.lastHarvest = block.number + _upgradeDelay;
 
-        uint256[][] memory costs = _baseCosts;
+        Cost[] memory costs = _baseCosts;
         for (uint256 i = 0; i < costs.length; i++) {
-            sanctis.resourceRegistry().resource(costs[i][0]).burn(
+            sanctis.resourceRegistry().resource(costs[i].resourceId).burn(
                 _id,
                 planetId,
-                costs[i][1] + _costRates[i][1] * _extractors[planetId].level
+                costs[i].quantity +
+                    _costRates[i].quantity *
+                    _extractors[planetId].level
             );
         }
     }
@@ -158,16 +161,16 @@ contract Extractors is IExtractors {
      * @return An array of tuple (resourceId, amountNeeded)
      */
     function costsNextLevel(uint256 planetId)
-        external
+        public
         view
-        returns (uint256[][] memory)
+        returns (Cost[] memory)
     {
         uint256 extractorLevel = _extractors[planetId].level;
-        uint256[][] memory costs = _baseCosts;
-        uint256[][] memory rates = _costRates;
+        Cost[] memory costs = _baseCosts;
+        Cost[] memory rates = _costRates;
 
-        for (uint256 j = 0; j < _baseCosts.length; j++) {
-            costs[j][1] += extractorLevel * rates[j][1];
+        for (uint256 j = 0; j < costs.length; j++) {
+            costs[j].quantity += extractorLevel * rates[j].quantity;
         }
 
         return costs;

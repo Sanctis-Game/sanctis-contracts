@@ -23,21 +23,20 @@ contract Ship is IShip {
 
     uint256 internal _id;
     uint256 internal _speed;
-    uint256[][] internal _unitCosts;
+    Cost[] internal _unitCosts;
 
     constructor(
         ISanctis newSanctis,
         uint256 speed,
-        uint256[2][10] memory costs
+        Cost[] memory costs
     ) {
         sanctis = newSanctis;
         _speed = speed;
         _id = sanctis.shipRegistry().create(this);
 
-        uint256 i = 0;
-        while (i < 10 && costs[i][0] != 0) {
+        uint256 i;
+        for(; i<costs.length; ++i) {
             _unitCosts.push(costs[i]);
-            i++;
         }
     }
 
@@ -46,7 +45,7 @@ contract Ship is IShip {
         return _id;
     }
 
-    function unitCosts() external view returns (uint256[][] memory) {
+    function unitCosts() external view returns (Cost[] memory) {
         return _unitCosts;
     }
 
@@ -66,11 +65,12 @@ contract Ship is IShip {
         _checkIsRegisteredInfrastructure(msg.sender, operatorId);
 
         // Pay the unit
-        for (uint256 i = 0; i < _unitCosts.length; i++) {
-            sanctis.resourceRegistry().resource(_unitCosts[i][0]).burn(
+        uint256 i;
+        for (; i < _unitCosts.length; ++i) {
+            sanctis.resourceRegistry().resource(_unitCosts[i].resourceId).burn(
                 _id,
                 planetId,
-                _unitCosts[i][1] * amount
+                _unitCosts[i].quantity * amount
             );
         }
 

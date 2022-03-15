@@ -1,6 +1,7 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.10;
 
+import "./Cost.sol";
 import "./IInfrastructure.sol";
 import "./IShip.sol";
 
@@ -9,7 +10,7 @@ interface ISpatioports is IInfrastructure {
 
     struct Spatioport {
         uint256 level;
-        uint256[][] nextCosts;
+        Cost[] nextCosts;
         uint256 nextUpgrade;
     }
 

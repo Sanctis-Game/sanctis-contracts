@@ -1,7 +1,8 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.10;
 
 interface IPlanets {
+    error InvalidPlanet(uint256 planet);
     error PlanetAlreadyExists(uint256 planet);
     error PlanetAlreadyColonized(uint256 planet, IPlanets.PlanetStatus status);
     error NotTheOwner(uint256 ruler);
@@ -21,9 +22,9 @@ interface IPlanets {
     struct Planet {
         PlanetStatus status;
         uint256 ruler;
-        uint80 x;
-        uint80 y;
-        uint80 z;
+        int80 x;
+        int80 y;
+        int80 z;
         uint8 humidity;
     }
 
@@ -38,7 +39,7 @@ interface IPlanets {
     function commanderPlanetByIndex(uint256 commanderId, uint256 index)
         external
         view
-        returns (Planet memory);
+        returns (uint256);
 
     function distance(uint256 from, uint256 to) external view returns (uint256);
 }

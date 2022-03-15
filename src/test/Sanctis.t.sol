@@ -108,10 +108,12 @@ contract SanctisTest is DSTest {
         humans = new Humans(sanctis);
         iron = new Iron(sanctis);
 
-        uint256[2][10] memory extractorsCosts;
-        extractorsCosts[0] = [uint256(1), uint256(0)];
-        uint256[2][10] memory extractorsRates;
-        extractorsRates[0] = [uint256(1), uint256(100)];
+        Cost[] memory extractorsCosts = new Cost[](1);
+        extractorsCosts[0].resourceId = 1;
+        extractorsCosts[0].quantity = 0;
+        Cost[] memory extractorsRates = new Cost[](1);
+        extractorsRates[0].resourceId = 1;
+        extractorsRates[0].quantity = 100;
         extractors = new Extractors(
             sanctis,
             iron.id(),
@@ -122,10 +124,12 @@ contract SanctisTest is DSTest {
             extractorsRates
         );
 
-        uint256[2][10] memory spatioportsCosts;
-        spatioportsCosts[0] = [uint256(1), uint256(100)];
-        uint256[2][10] memory spatioportsRates;
-        spatioportsRates[0] = [uint256(1), uint256(100)];
+        Cost[] memory spatioportsCosts = new Cost[](1);
+        spatioportsCosts[0].resourceId = 1;
+        spatioportsCosts[0].quantity = 100;
+        Cost[] memory spatioportsRates = new Cost[](1);
+        spatioportsRates[0].resourceId = 1;
+        spatioportsRates[0].quantity = 100;
         spatioports = new Spatioports(
             sanctis,
             EXTRACTORS_DELAY,
@@ -133,8 +137,9 @@ contract SanctisTest is DSTest {
             spatioportsRates
         );
 
-        uint256[2][10] memory transportersCosts;
-        transportersCosts[0] = [uint256(1), uint256(100)];
+        Cost[] memory transportersCosts = new Cost[](1);
+        transportersCosts[0].resourceId = 1;
+        transportersCosts[0].quantity = 100;
         transporters = new Transporters(
             sanctis,
             TRANSPORTERS_CAPACITY,
