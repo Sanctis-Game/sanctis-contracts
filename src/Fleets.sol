@@ -9,17 +9,14 @@ import "./interfaces/ISanctis.sol";
 import "./interfaces/ICommanders.sol";
 import "./interfaces/IPlanets.sol";
 import "./interfaces/IFleets.sol";
+import "./SanctisModule.sol";
 
-contract Fleets is IFleets {
+contract Fleets is IFleets, SanctisModule {
     mapping(uint256 => Fleet) internal _fleets;
-
-    ISanctis public sanctis;
 
     constructor(
         ISanctis newSanctis
-    ) {
-        sanctis = newSanctis;
-    }
+    ) SanctisModule(newSanctis) {}
 
     /* ========== Fleets interfaces ========== */
     function fleet(uint256 fleetId) external view returns (Fleet memory) {

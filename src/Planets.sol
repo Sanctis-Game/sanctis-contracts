@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -9,26 +8,22 @@ import "solmate/utils/FixedPointMathLib.sol";
 
 import "./interfaces/ISanctis.sol";
 import "./interfaces/IPlanets.sol";
+import "./SanctisModule.sol";
 
-contract Planets is IPlanets, Ownable {
+contract Planets is IPlanets, SanctisModule {
     using EnumerableSet for EnumerableSet.UintSet;
     using FixedPointMathLib for uint256;
 
     mapping(uint256 => Planet) private _planets;
     mapping(uint256 => EnumerableSet.UintSet) _commanderPlanets;
 
-    ISanctis public sanctis;
     uint256 public colonizationCost;
 
     constructor(
         ISanctis newSanctis,
-        ISpaceCredits credits,
         uint256 cost
-    ) {
-        transferOwnership(address(newSanctis.parliamentExecutor()));
-        sanctis = newSanctis;
+    ) SanctisModule(newSanctis) {
         colonizationCost = cost;
-        credits.approve(sanctis.council(), colonizationCost);
 
         // Placing the Sanctis at the center of the universe
         _planets[0] = Planet({
@@ -39,6 +34,10 @@ contract Planets is IPlanets, Ownable {
             z: 0,
             humidity: 125
         });
+    }
+
+    function setColonizationCost(uint256 newCost) public onlyExecutor {
+        colonizationCost = newCost;
     }
 
     function create(uint256 planetId) public {
@@ -112,9 +111,5 @@ contract Planets is IPlanets, Ownable {
             FixedPointMathLib.sqrt(
                 uint256(int256((b.x - a.x)**2)) + uint256(int256((b.y - a.y)**2)) + uint256(int256((b.z - a.z)**2))
             );
-    }
-
-    function _isCreated(uint256 planetId) external view returns (bool) {
-        return _planets[planetId].status != PlanetStatus.Unknown;
     }
 }

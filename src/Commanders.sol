@@ -1,23 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 import "./interfaces/ICommanders.sol";
 import "./interfaces/IPlanets.sol";
 import "./interfaces/ISanctis.sol";
+import "./SanctisModule.sol";
 
-contract Commanders is ICommanders, ERC721Enumerable, Ownable {
+contract Commanders is ICommanders, ERC721Enumerable, SanctisModule {
     mapping(uint256 => Commander) private _commanders;
     uint256 private _createdCommanders;
 
-    ISanctis public sanctis;
-
-    constructor(ISanctis newSanctis) ERC721("Commanders", "CITIZEN") {
-        transferOwnership(address(newSanctis.parliamentExecutor()));
-        sanctis = newSanctis;
-    }
+    constructor(ISanctis newSanctis) ERC721("Commanders", "CITIZEN") SanctisModule(newSanctis) {}
 
     function create(string memory name, IRace race) external {
         require(validateName(name), "Commanders: Invalid name");
@@ -30,17 +25,11 @@ contract Commanders is ICommanders, ERC721Enumerable, Ownable {
         _mint(msg.sender, _createdCommanders);
     }
 
-    function onboard(uint256 citizenId) external {
-        if (msg.sender != address(sanctis))
-            revert NotTheCitadel({caller: msg.sender});
-
+    function onboard(uint256 citizenId) external onlySanctis {
         _commanders[citizenId].onboarding = block.timestamp;
     }
 
-    function offboard(uint256 citizenId) external {
-        if (msg.sender != address(sanctis))
-            revert NotTheCitadel({caller: msg.sender});
-
+    function offboard(uint256 citizenId) external onlySanctis {
         _commanders[citizenId].onboarding = 0;
     }
 

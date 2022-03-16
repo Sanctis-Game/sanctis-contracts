@@ -9,8 +9,9 @@ import "../interfaces/Cost.sol";
 import "../interfaces/ISanctis.sol";
 import "../interfaces/IResource.sol";
 import "../interfaces/ISpatioports.sol";
+import "../SanctisModule.sol";
 
-contract Spatioports is ISpatioports {
+contract Spatioports is ISpatioports, SanctisModule {
     /// @dev Compact struct which can be used to infer other info
     struct InternalSpatioport {
         uint256 level;
@@ -19,8 +20,6 @@ contract Spatioports is ISpatioports {
     }
 
     mapping(uint256 => InternalSpatioport) internal _spatioports;
-
-    ISanctis internal sanctis;
 
     uint256 internal _upgradeDelay;
     Cost[] internal _baseCosts;
@@ -36,8 +35,7 @@ contract Spatioports is ISpatioports {
         uint256 _delay,
         Cost[] memory _cBase,
         Cost[] memory _cRates
-    ) {
-        sanctis = _sanctis;
+    ) SanctisModule(_sanctis) {
         _upgradeDelay = _delay;
 
         uint256 i;

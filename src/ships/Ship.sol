@@ -10,14 +10,13 @@ import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
 import "../interfaces/IFleets.sol";
 import "../interfaces/ITransporters.sol";
+import "../SanctisModule.sol";
 
-contract Ship is IShip {
+contract Ship is IShip, SanctisModule {
     /// @notice Amount of ships on a given planet
     mapping(uint256 => uint256) internal _reserves;
     /// @notice Amount of ship in a given fleet
     mapping(uint256 => uint256) internal _fleets;
-
-    ISanctis public sanctis;
 
     uint256 internal _speed;
     Cost[] internal _unitCosts;
@@ -26,8 +25,7 @@ contract Ship is IShip {
         ISanctis newSanctis,
         uint256 speed,
         Cost[] memory costs
-    ) {
-        sanctis = newSanctis;
+    ) SanctisModule(newSanctis) {
         _speed = speed;
 
         uint256 i;
@@ -49,10 +47,7 @@ contract Ship is IShip {
         return _fleets[fleetId];
     }
 
-    function build(uint256 planetId, uint256 amount) external {
-        if (!sanctis.allowed(msg.sender))
-            revert UnallowedOperator({operator: msg.sender});
-
+    function build(uint256 planetId, uint256 amount) external onlyAllowed {
         // Pay the unit
         uint256 i;
         for (; i < _unitCosts.length; ++i) {
@@ -65,10 +60,8 @@ contract Ship is IShip {
         _reserves[planetId] += amount;
     }
 
-    function destroy(uint256 planetId, uint256 amount) external {
-        if (!sanctis.allowed(msg.sender))
-            revert UnallowedOperator({operator: msg.sender});
-
+    function destroy(uint256 planetId, uint256 amount) external onlyAllowed {
+        // TODO: Refunds
         _reserves[planetId] -= amount;
     }
 

@@ -10,19 +10,17 @@ import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
 import "../interfaces/IResource.sol";
 import "../interfaces/IExtractors.sol";
+import "../SanctisModule.sol";
 
 /**
  * Abstract contract defining a base for resource handling
  */
-abstract contract Resource is IResource {
+abstract contract Resource is IResource, SanctisModule {
     mapping(uint256 => uint256) internal _reserves;
-
-    ISanctis public sanctis;
 
     string internal _name;
 
-    constructor(ISanctis sanctis_, string memory name_) {
-        sanctis = sanctis_;
+    constructor(ISanctis sanctis_, string memory name_) SanctisModule(sanctis_) {
         _name = name_;
     }
 
@@ -39,18 +37,14 @@ abstract contract Resource is IResource {
     function mint(
         uint256 planetId,
         uint256 amount
-    ) external {
-        if(!sanctis.allowed(msg.sender)) revert Unallowed({ sender: msg.sender });
-
+    ) external onlyAllowed {
         _reserves[planetId] += amount;
     }
 
     function burn(
         uint256 planetId,
         uint256 amount
-    ) external {
-        if(!sanctis.allowed(msg.sender)) revert Unallowed({ sender: msg.sender });
-
+    ) external onlyAllowed {
         _reserves[planetId] -= amount;
     }
 

@@ -55,7 +55,7 @@ contract SanctisTest is DSTest {
 
     function setUp() public {
         sanctis = new Sanctis();
-        credits = new SpaceCredits();
+        credits = new SpaceCredits(sanctis);
         parliament = new Parliament(
             ERC20Votes(credits),
             TimelockController(payable(address(this)))
@@ -65,12 +65,10 @@ contract SanctisTest is DSTest {
             address(this),
             ISpaceCredits(address(credits))
         );
-        credits.transferOwnership(sanctis.parliamentExecutor());
 
         commanders = new Commanders(sanctis);
         planets = new Planets(
             sanctis,
-            ISpaceCredits(address(credits)),
             COLONIZATION_COST
         );
         fleets = new Fleets(sanctis);
@@ -81,7 +79,7 @@ contract SanctisTest is DSTest {
             CITIZEN_CAPACITY
         );
 
-        humans = new Humans();
+        humans = new Humans(sanctis);
         iron = new Iron(sanctis);
 
         Cost[] memory extractorsCosts = new Cost[](1);

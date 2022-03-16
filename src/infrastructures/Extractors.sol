@@ -11,8 +11,9 @@ import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
 import "../interfaces/IResource.sol";
 import "../interfaces/IExtractors.sol";
+import "../SanctisModule.sol";
 
-contract Extractors is IExtractors {
+contract Extractors is IExtractors, SanctisModule {
     struct InternalExtractor {
         uint256 level;
         uint256 lastUpgrade;
@@ -20,8 +21,6 @@ contract Extractors is IExtractors {
     }
 
     mapping(uint256 => InternalExtractor) private _extractors;
-
-    ISanctis public sanctis;
 
     IResource private _harvestedResource;
     uint256 private _baseRewards;
@@ -44,8 +43,7 @@ contract Extractors is IExtractors {
         uint256 _delay,
         Cost[] memory _cBase,
         Cost[] memory _cRates
-    ) {
-        sanctis = _sanctis;
+    ) SanctisModule(_sanctis) {
         _harvestedResource = _resource;
         _baseRewards = _rBase;
         _rewardsRate = _rRate;

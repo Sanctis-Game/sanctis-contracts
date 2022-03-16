@@ -1,17 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "../interfaces/IRace.sol";
 import "../interfaces/ISanctis.sol";
+import "./Race.sol";
 
-contract Humans is IRace {
-    string _name;
-
-    constructor() {
-        _name = "Humans";
-    }
-
-    function name() external view returns (string memory) {
-        return _name;
-    }
+contract Humans is Race {
+    constructor(ISanctis _sanctis) Race(_sanctis, "Humans") {}
 }
