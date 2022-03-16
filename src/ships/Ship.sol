@@ -96,8 +96,8 @@ contract Ship is IShip, SanctisModule {
     {
         if (
             player !=
-            sanctis.commanders().ownerOf(
-                sanctis.planets().planet(planetId).ruler
+            ICommanders(sanctis.extension("COMMANDERS")).ownerOf(
+                IPlanets(sanctis.extension("PLANETS")).planet(planetId).ruler
             )
         ) revert PlanetNotOwned({player: player, planet: planetId});
     }
@@ -108,12 +108,12 @@ contract Ship is IShip, SanctisModule {
     {
         if (
             player !=
-            sanctis.commanders().ownerOf(
-                sanctis.planets().planet(planetId).ruler
+            ICommanders(sanctis.extension("COMMANDERS")).ownerOf(
+                IPlanets(sanctis.extension("PLANETS")).planet(planetId).ruler
             ) &&
-            !sanctis.commanders().isApprovedForAll(
-                sanctis.commanders().ownerOf(
-                    sanctis.planets().planet(planetId).ruler
+            !ICommanders(sanctis.extension("COMMANDERS")).isApprovedForAll(
+                ICommanders(sanctis.extension("COMMANDERS")).ownerOf(
+                    IPlanets(sanctis.extension("PLANETS")).planet(planetId).ruler
                 ),
                 player
             )
@@ -124,7 +124,7 @@ contract Ship is IShip, SanctisModule {
         internal
         view
     {
-        IFleets.Fleet memory f = sanctis.fleets().fleet(fleetId);
+        IFleets.Fleet memory f = IFleets(sanctis.extension("FLEETS")).fleet(fleetId);
         if (
             (f.fromPlanetId == planetId &&
                 f.status == IFleets.FleetStatus.Preparing) ||

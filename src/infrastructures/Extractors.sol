@@ -158,10 +158,10 @@ contract Extractors is IExtractors, SanctisModule {
     function _isPlanetOwner(address operator, uint256 planetId) internal view {
         if (
             operator !=
-            sanctis.commanders().ownerOf(
-                sanctis.planets().planet(planetId).ruler
+            ICommanders(sanctis.extension("COMMANDERS")).ownerOf(
+                IPlanets(sanctis.extension("PLANETS")).planet(planetId).ruler
             ) &&
-            sanctis.commanders().isApprovedForAll(operator, address(this))
+            ICommanders(sanctis.extension("COMMANDERS")).isApprovedForAll(operator, address(this))
         ) revert PlanetNotOwned({planetId: planetId});
     }
 

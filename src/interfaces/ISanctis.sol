@@ -3,38 +3,22 @@ pragma solidity 0.8.10;
 
 import "openzeppelin-contracts/contracts/governance/IGovernor.sol";
 
-import "./IPlanets.sol";
-import "./ICommanders.sol";
-import "./IFleets.sol";
-import "./ISpaceCredits.sol";
+import "./ISanctisExtension.sol";
 
 interface ISanctis {
-    error CitadelIsFull(uint256 capacity);
-    error CitizenshipMoreExpensive(uint256 cost, uint256 paid);
-    error NotCitizenOwner(uint256 citizen);
-    error RaceNotAllowed(IRace race);
+    function parliamentExecutor() external view returns (address);
 
-    function onboard(uint256 citizenId) external payable;
-
-    function offboard(uint256 citizenId) external;
-
-    function planets() external view returns (IPlanets);
-
-    function commanders() external view returns (ICommanders);
-
-    function credits() external view returns (ISpaceCredits);
-
-    function fleets() external view returns (IFleets);
+    function setParliamentExecutor(address newParliamentExecutor) external;
 
     function allowed(address) external view returns (bool);
     
     function setAllowed(address, bool) external;
 
-    function parliamentExecutor() external view returns (address);
+    function extension(string memory key) external view returns (address);
 
-    function council() external view returns (address);
+    function insertAndAllowExtension(ISanctisExtension object) external;
 
-    function numberOfCitizens() external view returns (uint256);
+    function reloadExtension(ISanctisExtension object) external;
 
-    function citizenCapacity() external view returns (uint256);
+    function ejectAndDisallowExtension(ISanctisExtension object) external;
 }

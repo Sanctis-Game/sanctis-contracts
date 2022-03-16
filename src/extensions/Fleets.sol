@@ -5,18 +5,18 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "./interfaces/ISanctis.sol";
-import "./interfaces/ICommanders.sol";
-import "./interfaces/IPlanets.sol";
-import "./interfaces/IFleets.sol";
-import "./SanctisModule.sol";
+import "../interfaces/ISanctis.sol";
+import "../interfaces/ICommanders.sol";
+import "../interfaces/IPlanets.sol";
+import "../interfaces/IFleets.sol";
+import "../SanctisExtension.sol";
 
-contract Fleets is IFleets, SanctisModule {
+contract Fleets is IFleets, SanctisExtension {
     mapping(uint256 => Fleet) internal _fleets;
 
     constructor(
         ISanctis newSanctis
-    ) SanctisModule(newSanctis) {}
+    ) SanctisExtension("FLEETS", newSanctis) {}
 
     /* ========== Fleets interfaces ========== */
     function fleet(uint256 fleetId) external view returns (Fleet memory) {

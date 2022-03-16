@@ -5,13 +5,11 @@ import "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
-import "./interfaces/ISanctis.sol";
-import "./SanctisModule.sol";
+import "../interfaces/ISanctis.sol";
+import "../SanctisExtension.sol";
 
-contract SpaceCredits is ERC20, ERC20Votes, SanctisModule {
-    constructor(ISanctis _sanctis) ERC20("Space Credits", "CRED") ERC20Permit("Space Credits") SanctisModule(_sanctis) {
-        _mint(msg.sender, 10 ** 27);
-    }
+contract SpaceCredits is ERC20, ERC20Votes, SanctisExtension {
+    constructor(ISanctis _sanctis) ERC20("Space Credits", "CRED") ERC20Permit("Space Credits") SanctisExtension("CREDITS", _sanctis) {}
 
     function mint(address to, uint256 amount) external onlyExecutor {
         _mint(to, amount);

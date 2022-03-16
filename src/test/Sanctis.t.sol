@@ -5,13 +5,12 @@ import "ds-test/test.sol";
 import "openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockControl.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
-import "../interfaces/ISpaceCredits.sol";
 import "../Sanctis.sol";
-import "../SpaceCredits.sol";
-import "../Commanders.sol";
-import "../Planets.sol";
-import "../Fleets.sol";
-
+import "../interfaces/ISpaceCredits.sol";
+import "../extensions/SpaceCredits.sol";
+import "../extensions/Commanders.sol";
+import "../extensions/Planets.sol";
+import "../extensions/Fleets.sol";
 import "../races/Humans.sol";
 import "../resources/Iron.sol";
 import "../infrastructures/Extractors.sol";
@@ -55,29 +54,23 @@ contract SanctisTest is DSTest {
 
     function setUp() public {
         sanctis = new Sanctis();
-        credits = new SpaceCredits(sanctis);
-        parliament = new Parliament(
-            ERC20Votes(credits),
-            TimelockController(payable(address(this)))
-        );
-        sanctis.setGovernance(
-            address(parliament),
-            address(this),
-            ISpaceCredits(address(credits))
-        );
 
+        credits = new SpaceCredits(sanctis);
         commanders = new Commanders(sanctis);
         planets = new Planets(
             sanctis,
             COLONIZATION_COST
         );
         fleets = new Fleets(sanctis);
-        sanctis.setWorld(
-            planets,
-            commanders,
-            fleets,
-            CITIZEN_CAPACITY
-        );
+
+        sanctis.setParliamentExecutor(address(this));
+
+        sanctis.insertAndAllowExtension(credits);
+        sanctis.insertAndAllowExtension(commanders);
+        sanctis.insertAndAllowExtension(planets);
+        sanctis.insertAndAllowExtension(fleets);
+
+        credits.mint(address(this), 10**27);
 
         humans = new Humans(sanctis);
         iron = new Iron(sanctis);
@@ -131,7 +124,6 @@ contract SanctisTest is DSTest {
     function testCreateCitizen() public {
         uint256 homeworld = 1020;
         commanders.create("Tester", humans);
-        sanctis.onboard(commanders.created());
         planets.create(homeworld);
         credits.approve(address(planets), COLONIZATION_COST);
         planets.colonize(commanders.created(), homeworld);

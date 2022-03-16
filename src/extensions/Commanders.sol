@@ -3,16 +3,16 @@ pragma solidity 0.8.10;
 
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "./interfaces/ICommanders.sol";
-import "./interfaces/IPlanets.sol";
-import "./interfaces/ISanctis.sol";
-import "./SanctisModule.sol";
+import "../interfaces/ICommanders.sol";
+import "../interfaces/IPlanets.sol";
+import "../interfaces/ISanctis.sol";
+import "../SanctisExtension.sol";
 
-contract Commanders is ICommanders, ERC721Enumerable, SanctisModule {
+contract Commanders is ICommanders, ERC721Enumerable, SanctisExtension {
     mapping(uint256 => Commander) private _commanders;
     uint256 private _createdCommanders;
 
-    constructor(ISanctis newSanctis) ERC721("Commanders", "CITIZEN") SanctisModule(newSanctis) {}
+    constructor(ISanctis newSanctis) ERC721("Commanders", "CITIZEN") SanctisExtension("COMMANDERS", newSanctis) {}
 
     function create(string memory name, IRace race) external {
         require(validateName(name), "Commanders: Invalid name");

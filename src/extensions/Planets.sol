@@ -6,11 +6,13 @@ import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerab
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "solmate/utils/FixedPointMathLib.sol";
 
-import "./interfaces/ISanctis.sol";
-import "./interfaces/IPlanets.sol";
-import "./SanctisModule.sol";
+import "../interfaces/ISanctis.sol";
+import "../interfaces/IPlanets.sol";
+import "../interfaces/ICommanders.sol";
+import "../interfaces/ISpaceCredits.sol";
+import "../SanctisExtension.sol";
 
-contract Planets is IPlanets, SanctisModule {
+contract Planets is IPlanets, SanctisExtension {
     using EnumerableSet for EnumerableSet.UintSet;
     using FixedPointMathLib for uint256;
 
@@ -22,7 +24,7 @@ contract Planets is IPlanets, SanctisModule {
     constructor(
         ISanctis newSanctis,
         uint256 cost
-    ) SanctisModule(newSanctis) {
+    ) SanctisExtension("PLANETS", newSanctis) {
         colonizationCost = cost;
 
         // Placing the Sanctis at the center of the universe
@@ -70,14 +72,14 @@ contract Planets is IPlanets, SanctisModule {
                 status: _planets[planetId].status
             });
 
-        if (sanctis.commanders().ownerOf(ruler) != msg.sender)
+        if (ICommanders(sanctis.extension("COMMANDERS")).ownerOf(ruler) != msg.sender)
             revert NotTheOwner({ruler: planetId});
 
         _planets[planetId].ruler = ruler;
         _planets[planetId].status = PlanetStatus.Colonized;
         _commanderPlanets[ruler].add(planetId);
 
-        sanctis.credits().transferFrom(
+        ISpaceCredits(sanctis.extension("CREDITS")).transferFrom(
             msg.sender,
             sanctis.parliamentExecutor(),
             colonizationCost
