@@ -9,8 +9,6 @@ import "../interfaces/Cost.sol";
 import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
-import "../interfaces/IResourceRegistry.sol";
-import "../interfaces/IInfrastructureRegistry.sol";
 import "../interfaces/IResource.sol";
 import "../interfaces/IExtractors.sol";
 
@@ -25,8 +23,7 @@ contract Extractors is IExtractors {
 
     ISanctis public sanctis;
 
-    uint256 private _id;
-    uint256 private _harvestedResource;
+    IResource private _harvestedResource;
     uint256 private _baseRewards;
     uint256 private _rewardsRate;
     uint256 private _levelFactor;
@@ -41,17 +38,15 @@ contract Extractors is IExtractors {
      */
     constructor(
         ISanctis _sanctis,
-        uint256 _resourceId,
+        IResource _resource,
         uint256 _rBase,
         uint256 _rRate,
         uint256 _delay,
         Cost[] memory _cBase,
         Cost[] memory _cRates
     ) {
-        if (_resourceId == 0) revert ResourceZero();
-
         sanctis = _sanctis;
-        _harvestedResource = _resourceId;
+        _harvestedResource = _resource;
         _baseRewards = _rBase;
         _rewardsRate = _rRate;
         _upgradeDelay = _delay;
@@ -61,8 +56,6 @@ contract Extractors is IExtractors {
             _baseCosts.push(_cBase[i]);
             _costRates.push(_cRates[i]);
         }
-
-        _id = sanctis.infrastructureRegistry().create(this);
     }
 
     /* ========== Extractor interfaces ========== */
@@ -75,11 +68,7 @@ contract Extractors is IExtractors {
 
         _extractors[planetId].lastHarvest = block.number;
 
-        sanctis.resourceRegistry().resource(_harvestedResource).mint(
-            _id,
-            planetId,
-            extractable
-        );
+        _harvestedResource.mint(planetId, extractable);
     }
 
     function harvestable(uint256 planetId) external view returns (uint256) {
@@ -104,10 +93,6 @@ contract Extractors is IExtractors {
     }
 
     /* ========== Infrastructure interfaces ========== */
-    function id() external view returns (uint256) {
-        return _id;
-    }
-
     function create(uint256 planetId) external {
         _isPlanetOwner(msg.sender, planetId);
         _planetHasResource(planetId);
@@ -121,11 +106,7 @@ contract Extractors is IExtractors {
 
         Cost[] memory costs = _baseCosts;
         for (uint256 i = 0; i < costs.length; i++) {
-            sanctis.resourceRegistry().resource(costs[i].resourceId).burn(
-                _id,
-                planetId,
-                costs[i].quantity
-            );
+            _harvestedResource.burn(planetId, costs[i].quantity);
         }
     }
 
@@ -142,12 +123,11 @@ contract Extractors is IExtractors {
 
         Cost[] memory costs = _baseCosts;
         for (uint256 i = 0; i < costs.length; i++) {
-            sanctis.resourceRegistry().resource(costs[i].resourceId).burn(
-                _id,
-                planetId,
+            costs[i].resource.burn(
+                planetId, 
                 costs[i].quantity +
-                    _costRates[i].quantity *
-                    _extractors[planetId].level
+                _costRates[i].quantity *
+                _extractors[planetId].level
             );
         }
     }
@@ -188,15 +168,10 @@ contract Extractors is IExtractors {
     }
 
     function _planetHasResource(uint256 planetId) internal view {
-        if (
-            !sanctis
-                .resourceRegistry()
-                .resource(_harvestedResource)
-                .isAvailableOnPlanet(planetId)
-        )
+        if (!_harvestedResource.isAvailableOnPlanet(planetId))
             revert ResourceNotOnPlanet({
                 planetId: planetId,
-                resourceId: _harvestedResource
+                resource: _harvestedResource
             });
     }
 

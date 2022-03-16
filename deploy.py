@@ -33,6 +33,7 @@ contracts = [
     ("HUMANS", "src/races/Humans.sol:Humans"),
     ("IRON", "src/resources/Iron.sol:Iron"),
     ("IRONEXTRACTOR", "src/infrastructures/Extractors.sol:Extractors"),
+    ("SPATIOPORT", "src/infrastructures/Spatioports.sol:Spatioports"),
 ]
 
 deployer = Deployer(

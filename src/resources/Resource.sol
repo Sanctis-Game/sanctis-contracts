@@ -8,8 +8,6 @@ import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerabl
 import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
-import "../interfaces/IGalacticStandards.sol";
-import "../interfaces/IInfrastructureRegistry.sol";
 import "../interfaces/IResource.sol";
 import "../interfaces/IExtractors.sol";
 
@@ -21,20 +19,14 @@ abstract contract Resource is IResource {
 
     ISanctis public sanctis;
 
-    uint256 internal _id;
     string internal _name;
 
     constructor(ISanctis sanctis_, string memory name_) {
         sanctis = sanctis_;
         _name = name_;
-        _id = sanctis.resourceRegistry().create(this);
     }
 
     /* ========== Resource interfaces ========== */
-    function id() external view returns (uint256) {
-        return _id;
-    }
-
     function name() external view returns (string memory) {
         return _name;
     }
@@ -45,21 +37,19 @@ abstract contract Resource is IResource {
      * @dev Cannot be called by an unregistered operator.
      */
     function mint(
-        uint256 operatorId,
         uint256 planetId,
         uint256 amount
     ) external {
-        _checkIsRegisteredInfrastructureOrShip(msg.sender, operatorId);
+        if(!sanctis.allowed(msg.sender)) revert Unallowed({ sender: msg.sender });
 
         _reserves[planetId] += amount;
     }
 
     function burn(
-        uint256 operatorId,
         uint256 planetId,
         uint256 amount
     ) external {
-        _checkIsRegisteredInfrastructureOrShip(msg.sender, operatorId);
+        if(!sanctis.allowed(msg.sender)) revert Unallowed({ sender: msg.sender });
 
         _reserves[planetId] -= amount;
     }
@@ -71,27 +61,5 @@ abstract contract Resource is IResource {
 
     function reserve(uint256 planetId) external view returns (uint256) {
         return _reserves[planetId];
-    }
-
-    /* ========== Helpers ========== */
-    function _checkIsRegisteredInfrastructureOrShip(
-        address sender,
-        uint256 operatorId
-    ) internal view {
-        if (
-            !((sanctis.standards().isAllowed(
-                IGalacticStandards.StandardType.Infrastructure,
-                operatorId
-            ) &&
-                address(
-                    sanctis.infrastructureRegistry().infrastructure(operatorId)
-                ) ==
-                sender) ||
-                (sanctis.standards().isAllowed(
-                    IGalacticStandards.StandardType.Ship,
-                    operatorId
-                ) &&
-                    address(sanctis.shipRegistry().ship(operatorId)) == sender))
-        ) revert IllegitimateMinter({minter: sender});
     }
 }

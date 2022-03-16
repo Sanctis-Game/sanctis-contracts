@@ -2,14 +2,13 @@
 pragma solidity 0.8.10;
 
 import "./Cost.sol";
+import "./IResource.sol";
 
 interface IInfrastructure {
-    error ResourceNotOnPlanet(uint256 planetId, uint256 resourceId);
+    error ResourceNotOnPlanet(uint256 planetId, IResource resource);
     error PlanetNotOwned(uint256 planetId);
-    error NotEnoughResource(uint256 planetId, uint256 resourceId);
+    error NotEnoughResource(uint256 planetId, IResource resource);
     error TooSoonToUpgrade(uint256 planetId, uint256 soonestUpgrade);
-
-    function id() external view returns (uint256);
 
     function create(uint256 planetId) external;
 

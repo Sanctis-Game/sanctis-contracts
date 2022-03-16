@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
+import "./IResource.sol";
+
 struct Cost {
-    uint256 resourceId;
+    IResource resource;
     uint256 quantity;
 }

@@ -11,6 +11,7 @@ import "../interfaces/IResource.sol";
 import "../interfaces/ISpatioports.sol";
 
 contract Spatioports is ISpatioports {
+    /// @dev Compact struct which can be used to infer other info
     struct InternalSpatioport {
         uint256 level;
         uint256 lastUpgrade;
@@ -21,7 +22,6 @@ contract Spatioports is ISpatioports {
 
     ISanctis internal sanctis;
 
-    uint256 internal _id;
     uint256 internal _upgradeDelay;
     Cost[] internal _baseCosts;
     Cost[] internal _costRates;
@@ -45,8 +45,6 @@ contract Spatioports is ISpatioports {
             _baseCosts.push(_cBase[i]);
             _costRates.push(_cRates[i]);
         }
-
-        _id = sanctis.infrastructureRegistry().create(this);
     }
 
     /* ========== Spatioport interfaces ========== */
@@ -59,7 +57,7 @@ contract Spatioports is ISpatioports {
         _isPlanetOwner(msg.sender, planetId);
 
         // Costs are handled by the ship
-        ship.build(_id, planetId, amount);
+        ship.build(planetId, amount);
     }
 
     function spatioport(uint256 planetId)
@@ -77,10 +75,6 @@ contract Spatioports is ISpatioports {
     }
 
     /* ========== Infrastructure interfaces ========== */
-    function id() external view returns (uint256) {
-        return _id;
-    }
-
     function create(uint256 planetId) external {
         _isPlanetOwner(msg.sender, planetId);
 
@@ -92,8 +86,7 @@ contract Spatioports is ISpatioports {
 
         Cost[] memory costs = _baseCosts;
         for (uint256 i = 0; i < costs.length; i++) {
-            sanctis.resourceRegistry().resource(costs[i].resourceId).burn(
-                _id,
+            costs[i].resource.burn(
                 planetId,
                 costs[i].quantity
             );
@@ -112,8 +105,7 @@ contract Spatioports is ISpatioports {
 
         Cost[] memory costs = _baseCosts;
         for (uint256 i = 0; i < costs.length; i++) {
-            sanctis.resourceRegistry().resource(costs[i].resourceId).burn(
-                _id,
+            costs[i].resource.burn(
                 planetId,
                 costs[i].quantity +
                     _costRates[i].quantity *
@@ -165,15 +157,10 @@ contract Spatioports is ISpatioports {
     function _planetHasReserves(uint256 planetId) internal view {
         Cost[] memory costs = costsNextLevel(planetId);
         for (uint256 i = 0; i < costs.length; i++) {
-            if (
-                sanctis
-                    .resourceRegistry()
-                    .resource(costs[i].resourceId)
-                    .reserve(planetId) < costs[i].quantity
-            )
+            if (costs[i].resource.reserve(planetId) < costs[i].quantity)
                 revert NotEnoughResource({
                     planetId: planetId,
-                    resourceId: costs[i].resourceId
+                    resource: costs[i].resource
                 });
         }
     }

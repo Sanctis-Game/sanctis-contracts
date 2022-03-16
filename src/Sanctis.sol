@@ -4,7 +4,6 @@ pragma solidity 0.8.10;
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 import "./interfaces/ISpaceCredits.sol";
-import "./interfaces/IGalacticStandards.sol";
 import "./interfaces/ISanctis.sol";
 import "./interfaces/IPlanets.sol";
 import "./interfaces/ICommanders.sol";
@@ -28,17 +27,13 @@ contract Sanctis is ISanctis, Ownable {
     ICommanders internal _commanders;
     ISpaceCredits internal _credits;
     IFleets internal _fleets;
-    IGalacticStandards internal _standards;
-
-    // Metagame
-    IRaceRegistry internal _raceRegistry;
-    IResourceRegistry internal _resourceRegistry;
-    IInfrastructureRegistry internal _infrastructureRegistry;
-    IShipRegistry internal _shipRegistry;
 
     // Governance
     address internal _parliamentExecutor;
     address internal _council;
+
+    // Metagame
+    mapping(address => bool) internal _allowed;
 
     /* ========== INITIALIZATION ========== */
     function setGovernance(
@@ -55,40 +50,12 @@ contract Sanctis is ISanctis, Ownable {
         IPlanets newPlanets,
         ICommanders newCommanders,
         IFleets newFleets,
-        IGalacticStandards newStandards,
         uint256 capacity
     ) external onlyOwner {
         _planets = newPlanets;
         _commanders = newCommanders;
         _fleets = newFleets;
-        _standards = newStandards;
         _citizensCapacity = capacity;
-    }
-
-    function setRegistries(
-        IRaceRegistry newRaceRegistry,
-        IResourceRegistry newResourceRegistry,
-        IInfrastructureRegistry newInfrastructureRegistry,
-        IShipRegistry newShipRegistry
-    ) external onlyOwner {
-        _raceRegistry = newRaceRegistry;
-        _resourceRegistry = newResourceRegistry;
-        _infrastructureRegistry = newInfrastructureRegistry;
-        _shipRegistry = newShipRegistry;
-    }
-
-    function add(IGalacticStandards.StandardType standard, uint256 id)
-        external
-        onlyOwner
-    {
-        _standards.add(standard, id);
-    }
-
-    function remove(IGalacticStandards.StandardType standard, uint256 id)
-        external
-        onlyOwner
-    {
-        _standards.remove(standard, id);
     }
 
     /* ========== CITIZENSHIP ========== */
@@ -104,12 +71,8 @@ contract Sanctis is ISanctis, Ownable {
             });
         if (msg.sender != ICommanders(_commanders).ownerOf(citizenId))
             revert NotCitizenOwner({citizen: citizenId});
-        if (
-            !_standards.isAllowed(
-                IGalacticStandards.StandardType.Race,
-                _commanders.commander(citizenId).raceId
-            )
-        ) revert RaceNotAllowed({race: _commanders.commander(citizenId).raceId});
+        if (!_allowed[address(_commanders.commander(citizenId).race)])
+            revert RaceNotAllowed({race: _commanders.commander(citizenId).race});
 
         _commanders.onboard(citizenId);
     }
@@ -139,8 +102,12 @@ contract Sanctis is ISanctis, Ownable {
         return _fleets;
     }
 
-    function standards() external view returns (IGalacticStandards) {
-        return _standards;
+    function allowed(address object) external view returns (bool) {
+        return _allowed[object];
+    }
+
+    function setAllowed(address object, bool value) external onlyOwner {
+        _allowed[object] = value;
     }
 
     function parliamentExecutor() external view returns (address) {
@@ -149,26 +116,6 @@ contract Sanctis is ISanctis, Ownable {
 
     function council() external view returns (address) {
         return _council;
-    }
-
-    function raceRegistry() external view returns (IRaceRegistry) {
-        return IRaceRegistry(_raceRegistry);
-    }
-
-    function resourceRegistry() external view returns (IResourceRegistry) {
-        return _resourceRegistry;
-    }
-
-    function infrastructureRegistry()
-        external
-        view
-        returns (IInfrastructureRegistry)
-    {
-        return _infrastructureRegistry;
-    }
-
-    function shipRegistry() external view returns (IShipRegistry) {
-        return _shipRegistry;
     }
 
     /// @notice This is different from the supply of Citizen

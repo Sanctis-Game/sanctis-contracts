@@ -8,8 +8,6 @@ import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerabl
 import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
-import "../interfaces/IGalacticStandards.sol";
-import "../interfaces/IShipRegistry.sol";
 import "../interfaces/IFleets.sol";
 import "../interfaces/ITransporters.sol";
 
@@ -21,7 +19,6 @@ contract Ship is IShip {
 
     ISanctis public sanctis;
 
-    uint256 internal _id;
     uint256 internal _speed;
     Cost[] internal _unitCosts;
 
@@ -32,19 +29,14 @@ contract Ship is IShip {
     ) {
         sanctis = newSanctis;
         _speed = speed;
-        _id = sanctis.shipRegistry().create(this);
 
         uint256 i;
-        for(; i<costs.length; ++i) {
+        for (; i < costs.length; ++i) {
             _unitCosts.push(costs[i]);
         }
     }
 
     /* ========== Ship interfaces ========== */
-    function id() external view returns (uint256) {
-        return _id;
-    }
-
     function unitCosts() external view returns (Cost[] memory) {
         return _unitCosts;
     }
@@ -57,18 +49,14 @@ contract Ship is IShip {
         return _fleets[fleetId];
     }
 
-    function build(
-        uint256 operatorId,
-        uint256 planetId,
-        uint256 amount
-    ) external {
-        _checkIsRegisteredInfrastructure(msg.sender, operatorId);
+    function build(uint256 planetId, uint256 amount) external {
+        if (!sanctis.allowed(msg.sender))
+            revert UnallowedOperator({operator: msg.sender});
 
         // Pay the unit
         uint256 i;
         for (; i < _unitCosts.length; ++i) {
-            sanctis.resourceRegistry().resource(_unitCosts[i].resourceId).burn(
-                _id,
+            _unitCosts[i].resource.burn(
                 planetId,
                 _unitCosts[i].quantity * amount
             );
@@ -77,12 +65,9 @@ contract Ship is IShip {
         _reserves[planetId] += amount;
     }
 
-    function destroy(
-        uint256 operatorId,
-        uint256 planetId,
-        uint256 amount
-    ) external {
-        _checkIsRegisteredInfrastructure(msg.sender, operatorId);
+    function destroy(uint256 planetId, uint256 amount) external {
+        if (!sanctis.allowed(msg.sender))
+            revert UnallowedOperator({operator: msg.sender});
 
         _reserves[planetId] -= amount;
     }
@@ -153,18 +138,5 @@ contract Ship is IShip {
             (f.toPlanetId == planetId &&
                 f.status == IFleets.FleetStatus.Arrived)
         ) revert InvalidFleet({fleet: fleetId});
-    }
-
-    function _checkIsRegisteredInfrastructure(
-        address sender,
-        uint256 infrastructureId
-    ) internal view {
-        if (
-            address(
-                sanctis.infrastructureRegistry().infrastructure(
-                    infrastructureId
-                )
-            ) != sender
-        ) revert UnauthorizedOperator({operator: infrastructureId});
     }
 }

@@ -16,7 +16,8 @@ interface IPlanets {
         Uncharted,
         Colonized,
         Federated,
-        Occupied
+        Occupied,
+        Sanctis
     }
 
     struct Planet {

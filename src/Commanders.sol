@@ -19,12 +19,12 @@ contract Commanders is ICommanders, ERC721Enumerable, Ownable {
         sanctis = newSanctis;
     }
 
-    function create(string memory name, uint256 raceId) external {
+    function create(string memory name, IRace race) external {
         require(validateName(name), "Commanders: Invalid name");
         _createdCommanders++;
         _commanders[_createdCommanders] = Commander({
             name: name,
-            raceId: raceId,
+            race: race,
             onboarding: 0
         });
         _mint(msg.sender, _createdCommanders);

@@ -9,13 +9,8 @@ import "../interfaces/ISpaceCredits.sol";
 import "../Sanctis.sol";
 import "../SpaceCredits.sol";
 import "../Commanders.sol";
-import "../GalacticStandards.sol";
 import "../Planets.sol";
 import "../Fleets.sol";
-import "../RaceRegistry.sol";
-import "../ResourceRegistry.sol";
-import "../InfrastructureRegistry.sol";
-import "../ShipRegistry.sol";
 
 import "../races/Humans.sol";
 import "../resources/Iron.sol";
@@ -49,14 +44,8 @@ contract CommandersTest is DSTest {
     SpaceCredits credits;
     Parliament parliament;
     Commanders commanders;
-    GalacticStandards standards;
     Planets planets;
     Fleets fleets;
-
-    RaceRegistry raceRegistry;
-    ResourceRegistry resourceRegistry;
-    InfrastructureRegistry infrastructureRegistry;
-    ShipRegistry shipRegistry;
 
     Humans humans;
     Iron iron;
@@ -79,7 +68,6 @@ contract CommandersTest is DSTest {
         credits.transferOwnership(sanctis.parliamentExecutor());
 
         commanders = new Commanders(sanctis);
-        standards = new GalacticStandards(address(sanctis));
         planets = new Planets(
             sanctis,
             ISpaceCredits(address(credits)),
@@ -90,50 +78,38 @@ contract CommandersTest is DSTest {
             planets,
             commanders,
             fleets,
-            standards,
             CITIZEN_CAPACITY
         );
 
-        raceRegistry = new RaceRegistry();
-        resourceRegistry = new ResourceRegistry();
-        infrastructureRegistry = new InfrastructureRegistry();
-        shipRegistry = new ShipRegistry();
-        sanctis.setRegistries(
-            raceRegistry,
-            resourceRegistry,
-            infrastructureRegistry,
-            shipRegistry
-        );
+        humans = new Humans();
 
-        humans = new Humans(sanctis);
-
-        sanctis.add(IGalacticStandards.StandardType.Race, humans.id());
+        sanctis.setAllowed(address(humans), true);
     }
 
     function testCreate() public {
-        commanders.create("Tester", humans.id());
-        commanders.create("Tester and tests", humans.id());
-        commanders.create("Testerrrrr", humans.id());
-        commanders.create("Tester420", humans.id());
-        commanders.create("Tester 420", humans.id());
+        commanders.create("Tester", humans);
+        commanders.create("Tester and tests", humans);
+        commanders.create("Testerrrrr", humans);
+        commanders.create("Tester420", humans);
+        commanders.create("Tester 420", humans);
     }
 
     function testFailCreateBadCharacter1() public {
-        commanders.create("Tester_ujuj", humans.id());
+        commanders.create("Tester_ujuj", humans);
     }
     
     function testFailCreateBadCharacter2() public {
-        commanders.create("Tester+ujuj", humans.id());
+        commanders.create("Tester+ujuj", humans);
     }
 
     function testOnboard() public {
-        commanders.create("Tester", humans.id());
+        commanders.create("Tester", humans);
         cheats.prank(address(sanctis), address(sanctis));
         commanders.onboard(1);
     }
     
     function testFailOnboardNotSanctis() public {
-        commanders.create("Tester", humans.id());
+        commanders.create("Tester", humans);
         commanders.onboard(1);
     }
 }

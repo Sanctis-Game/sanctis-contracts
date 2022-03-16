@@ -2,20 +2,16 @@
 pragma solidity 0.8.10;
 
 interface IResource {
-    error IllegitimateMinter(address minter);
-
-    function id() external view returns (uint256);
+    error Unallowed(address sender);
 
     function name() external view returns (string memory);
 
     function mint(
-        uint256 operatorId,
         uint256 planetId,
         uint256 amount
     ) external;
 
     function burn(
-        uint256 operatorId,
         uint256 planetId,
         uint256 amount
     ) external;

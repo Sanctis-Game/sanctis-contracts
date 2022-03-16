@@ -29,10 +29,20 @@ contract Planets is IPlanets, Ownable {
         sanctis = newSanctis;
         colonizationCost = cost;
         credits.approve(sanctis.council(), colonizationCost);
+
+        // Placing the Sanctis at the center of the universe
+        _planets[0] = Planet({
+            status: PlanetStatus.Sanctis,
+            ruler: 0,
+            x: 0,
+            y: 0,
+            z: 0,
+            humidity: 125
+        });
     }
 
     function create(uint256 planetId) public {
-        if(planetId > type(uint256).max)
+        if(planetId > type(uint240).max)
             revert InvalidPlanet({planet: planetId});
         if (_planets[planetId].status != PlanetStatus.Unknown)
             revert PlanetAlreadyExists({planet: planetId});
@@ -100,7 +110,7 @@ contract Planets is IPlanets, Ownable {
         Planet memory b = _planets[to];
         return
             FixedPointMathLib.sqrt(
-                uint80((b.x - a.x)**2) + uint80((b.y - a.y)**2) + uint80((b.z - a.z)**2)
+                uint256(int256((b.x - a.x)**2)) + uint256(int256((b.y - a.y)**2)) + uint256(int256((b.z - a.z)**2))
             );
     }
 
