@@ -164,5 +164,12 @@ contract SanctisTest is DSTest {
         spatioports.build(homeworld, transporters, transportersCount);
         assertEq(iron.reserve(homeworld), ironReserve - 100 * transportersCount);
         assertEq(transporters.reserve(homeworld), transportersCount);
+
+        uint256 fleetId = 42;
+        uint256 transportedQuantity = 1000;
+        fleets.createFleet(fleetId, 1, homeworld);
+        commanders.setApprovalForAll(address(transporters), true);
+        commanders.setApprovalForAll(address(fleets), true);
+        transporters.addToFleet(fleetId, transportersCount, iron, transportedQuantity);
     }
 }

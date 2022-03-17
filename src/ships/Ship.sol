@@ -23,10 +23,10 @@ contract Ship is IShip, SanctisModule {
 
     constructor(
         ISanctis newSanctis,
-        uint256 speed,
+        uint256 speed_,
         Cost[] memory costs
     ) SanctisModule(newSanctis) {
-        _speed = speed;
+        _speed = speed_;
 
         uint256 i;
         for (; i < costs.length; ++i) {
@@ -35,16 +35,16 @@ contract Ship is IShip, SanctisModule {
     }
 
     /* ========== Ship interfaces ========== */
+    function speed() external view returns (uint256) {
+        return _speed;
+    }
+    
     function unitCosts() external view returns (Cost[] memory) {
         return _unitCosts;
     }
 
     function reserve(uint256 planetId) external view returns (uint256) {
         return _reserves[planetId];
-    }
-
-    function inFleet(uint256 fleetId) external view returns (uint256) {
-        return _fleets[fleetId];
     }
 
     function build(uint256 planetId, uint256 amount) external onlyAllowed {
@@ -63,30 +63,6 @@ contract Ship is IShip, SanctisModule {
     function destroy(uint256 planetId, uint256 amount) external onlyAllowed {
         // TODO: Refunds
         _reserves[planetId] -= amount;
-    }
-
-    function addToFleet(
-        uint256 fleetId,
-        uint256 planetId,
-        uint256 amount
-    ) public {
-        _checkAuthorizedPlayer(msg.sender, planetId);
-        _checkFleetIsOnPlanet(fleetId, planetId);
-
-        _reserves[planetId] -= amount;
-        _fleets[fleetId] += amount;
-    }
-
-    function removeFromFleet(
-        uint256 fleetId,
-        uint256 planetId,
-        uint256 amount
-    ) public {
-        _checkAuthorizedPlayer(msg.sender, planetId);
-        _checkFleetIsOnPlanet(fleetId, planetId);
-
-        _reserves[planetId] += amount;
-        _fleets[fleetId] -= amount;
     }
 
     /* ========== Helpers ========== */

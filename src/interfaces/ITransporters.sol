@@ -3,8 +3,11 @@ pragma solidity 0.8.10;
 
 import "./Cost.sol";
 import "./IShip.sol";
+import "./IResource.sol";
 
 interface ITransporters is IShip {
+    error NotEnoughCapacity(uint256 maxCapacity);
+
     struct Transporter {
         /// @notice The quantity of resources a transporter can hold
         uint256 capacity;
@@ -14,11 +17,11 @@ interface ITransporters is IShip {
         Cost[] costs;
     }
 
-    function transport(
-        uint256 fromPlanetId,
-        uint256 toPlanetId,
-        uint256 amount,
-        uint256 ships
+    function addToFleet(
+        uint256 fleetId,
+        uint256 ships,
+        IResource resource,
+        uint256 quantity
     ) external;
 
     function characteristics() external view returns (Transporter memory);

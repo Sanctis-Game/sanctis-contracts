@@ -11,11 +11,11 @@ interface IShip {
     error NotEnoughReserve(uint256 planet, uint256 amount);
     error PlanetNotOwned(address player, uint256 planet);
 
+    function speed() external view returns (uint256);
+
     function unitCosts() external view returns (Cost[] memory);
 
     function reserve(uint256 planetId) external view returns (uint256);
-
-    function inFleet(uint256 fleetId) external view returns (uint256);
 
     function build(
         uint256 planetId,
@@ -23,18 +23,6 @@ interface IShip {
     ) external;
 
     function destroy(
-        uint256 planetId,
-        uint256 amount
-    ) external;
-
-    function addToFleet(
-        uint256 fleetId,
-        uint256 planetId,
-        uint256 amount
-    ) external;
-
-    function removeFromFleet(
-        uint256 fleetId,
         uint256 planetId,
         uint256 amount
     ) external;

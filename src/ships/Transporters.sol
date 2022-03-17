@@ -19,6 +19,7 @@ contract Transporters is ITransporters, Ship {
     }
 
     uint256 internal _capacity;
+    mapping(IResource => mapping(uint256 => uint256)) internal _stockPerFleet;
 
     constructor(
         ISanctis newSanctis,
@@ -30,12 +31,29 @@ contract Transporters is ITransporters, Ship {
     }
 
     /* ========== Transporter interfaces ========== */
-    function transport(
-        uint256 fromPlanetId,
-        uint256 toPlanetId,
-        uint256 amount,
-        uint256 ships
-    ) public {}
+    function addToFleet(
+        uint256 fleetId,
+        uint256 ships,
+        IResource resource,
+        uint256 quantity
+    ) public {
+        if(_capacity * ships < quantity) revert NotEnoughCapacity({ maxCapacity: _capacity * ships });
+        
+        _stockPerFleet[resource][fleetId] += quantity;
+        resource.burn(IFleets(sanctis.extension("FLEETS")).fleet(fleetId).fromPlanetId, quantity);
+        IFleets(sanctis.extension("FLEETS")).addToFleet(fleetId, this, ships);
+    }
+
+    function unload(
+        uint256 fleetId,
+        IResource resource,
+        uint256 quantity
+    ) public {
+        if(_stockPerFleet[resource][fleetId] < quantity) revert NotEnoughCapacity({ maxCapacity: _stockPerFleet[resource][fleetId] });
+        
+        _stockPerFleet[resource][fleetId] -= quantity;
+        resource.mint(IFleets(sanctis.extension("FLEETS")).fleet(fleetId).fromPlanetId, quantity);
+    }
 
     function characteristics() external view returns (Transporter memory) {
         return

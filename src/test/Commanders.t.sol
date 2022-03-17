@@ -90,15 +90,4 @@ contract CommandersTest is DSTest {
     function testFailCreateBadCharacter2() public {
         commanders.create("Tester+ujuj", humans);
     }
-
-    function testOnboard() public {
-        commanders.create("Tester", humans);
-        cheats.prank(address(sanctis), address(sanctis));
-        commanders.onboard(1);
-    }
-    
-    function testFailOnboardNotSanctis() public {
-        commanders.create("Tester", humans);
-        commanders.onboard(1);
-    }
 }

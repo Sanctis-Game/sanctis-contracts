@@ -19,27 +19,21 @@ contract Commanders is ICommanders, ERC721Enumerable, SanctisExtension {
         _createdCommanders++;
         _commanders[_createdCommanders] = Commander({
             name: name,
-            race: race,
-            onboarding: 0
+            race: race
         });
         _mint(msg.sender, _createdCommanders);
     }
 
-    function onboard(uint256 citizenId) external onlySanctis {
-        _commanders[citizenId].onboarding = block.timestamp;
-    }
-
-    function offboard(uint256 citizenId) external onlySanctis {
-        _commanders[citizenId].onboarding = 0;
-    }
-
-    /* ========== CITIZENSHIP ========== */
     function commander(uint256 commanderId) external view returns (Commander memory) {
         return _commanders[commanderId];
     }
 
     function created() external view returns (uint256) {
         return _createdCommanders;
+    }
+
+    function isApproved(address caller, uint256 commanderId) external view returns (bool) {
+        return _isApprovedOrOwner(caller, commanderId);
     }
 
     // @dev Check if the name string is valid (Alphanumeric and spaces without leading or trailing space)
