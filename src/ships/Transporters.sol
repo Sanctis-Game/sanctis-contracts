@@ -37,10 +37,14 @@ contract Transporters is ITransporters, Ship {
         IResource resource,
         uint256 quantity
     ) public {
-        if(_capacity * ships < quantity) revert NotEnoughCapacity({ maxCapacity: _capacity * ships });
-        
+        if (_capacity * ships < quantity)
+            revert NotEnoughCapacity({maxCapacity: _capacity * ships});
+
         _stockPerFleet[resource][fleetId] += quantity;
-        resource.burn(IFleets(sanctis.extension("FLEETS")).fleet(fleetId).fromPlanetId, quantity);
+        resource.burn(
+            IFleets(sanctis.extension("FLEETS")).fleet(fleetId).fromPlanetId,
+            quantity
+        );
         IFleets(sanctis.extension("FLEETS")).addToFleet(fleetId, this, ships);
     }
 
@@ -49,10 +53,25 @@ contract Transporters is ITransporters, Ship {
         IResource resource,
         uint256 quantity
     ) public {
-        if(_stockPerFleet[resource][fleetId] < quantity) revert NotEnoughCapacity({ maxCapacity: _stockPerFleet[resource][fleetId] });
-        
+        if (_stockPerFleet[resource][fleetId] < quantity)
+            revert NotEnoughCapacity({
+                maxCapacity: _stockPerFleet[resource][fleetId]
+            });
+
+        IFleets.Fleet memory targetFleet = IFleets(sanctis.extension("FLEETS"))
+            .fleet(fleetId);
+        if (
+            !ICommanders(sanctis.extension("COMMANDERS")).isApproved(
+                msg.sender,
+                targetFleet.commander
+            )
+        ) revert UnallowedOperator({operator: msg.sender});
+
         _stockPerFleet[resource][fleetId] -= quantity;
-        resource.mint(IFleets(sanctis.extension("FLEETS")).fleet(fleetId).fromPlanetId, quantity);
+        resource.mint(
+            IFleets(sanctis.extension("FLEETS")).fleet(fleetId).fromPlanetId,
+            quantity
+        );
     }
 
     function characteristics() external view returns (Transporter memory) {

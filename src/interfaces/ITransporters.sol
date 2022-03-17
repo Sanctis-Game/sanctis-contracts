@@ -24,5 +24,11 @@ interface ITransporters is IShip {
         uint256 quantity
     ) external;
 
+    function unload(
+        uint256 fleetId,
+        IResource resource,
+        uint256 quantity
+    ) external;
+
     function characteristics() external view returns (Transporter memory);
 }

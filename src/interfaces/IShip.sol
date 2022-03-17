@@ -26,4 +26,14 @@ interface IShip {
         uint256 planetId,
         uint256 amount
     ) external;
+
+    function mint(
+        uint256 planetId,
+        uint256 amount
+    ) external;
+
+    function burn(
+        uint256 planetId,
+        uint256 amount
+    ) external;
 }

@@ -8,6 +8,7 @@ interface IFleets {
     error NotCommanderOwner(uint256 commanderId);
     error AlreadyExists(uint256 fleetId);
     error AlreadyMoving(uint256 fleetId);
+    error NotArrivedYet(uint256 fleetId);
 
     enum FleetStatus {
         Preparing,
@@ -19,7 +20,8 @@ interface IFleets {
         uint256 commander;
         uint256 fromPlanetId;
         uint256 toPlanetId;
-        uint256 speed;
+        uint256 totalSpeed;
+        uint256 ships;
         uint256 arrivalBlock;
         FleetStatus status;
     }
@@ -40,5 +42,7 @@ interface IFleets {
         uint256 amount
     ) external;
 
-    function moveFleet(uint256 fromPlanetId, uint256 toPlanetId) external;
+    function moveFleet(uint256 fleetId, uint256 toPlanetId) external;
+
+    function settleFleet(uint256 fleetId) external;
 }

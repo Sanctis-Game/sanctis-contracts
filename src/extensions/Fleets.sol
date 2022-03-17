@@ -35,6 +35,7 @@ contract Fleets is IFleets, SanctisExtension {
 
         targetFleet.commander = commanderId;
         targetFleet.fromPlanetId = planetId;
+
         _fleets[fleetId] = targetFleet;
     }
 
@@ -55,11 +56,12 @@ contract Fleets is IFleets, SanctisExtension {
         if (targetFleet.status != FleetStatus.Preparing)
             revert AlreadyMoving({fleetId: fleetId});
 
-        if (targetFleet.speed > ship.speed())
-            _fleets[fleetId].speed = ship.speed();
+        targetFleet.totalSpeed += amount * ship.speed();
+        targetFleet.ships += amount;
+        _fleets[fleetId] = targetFleet;
 
         _shipsPerFleet[address(ship)] += amount;
-        ship.destroy(targetFleet.fromPlanetId, amount);
+        ship.burn(targetFleet.fromPlanetId, amount);
     }
 
     function removeFromFleet(
@@ -79,10 +81,12 @@ contract Fleets is IFleets, SanctisExtension {
         if (targetFleet.status != FleetStatus.Preparing)
             revert AlreadyMoving({fleetId: fleetId});
 
-        // TODO: Increase fleet's speed if there are 0 of the slower ship
+        targetFleet.totalSpeed -= amount * ship.speed();
+        targetFleet.ships -= amount;
+        _fleets[fleetId] = targetFleet;
 
         _shipsPerFleet[address(ship)] -= amount;
-        ship.build(targetFleet.fromPlanetId, amount);
+        ship.mint(targetFleet.fromPlanetId, amount);
     }
 
     function moveFleet(uint256 fleetId, uint256 toPlanetId) external {
@@ -98,14 +102,34 @@ contract Fleets is IFleets, SanctisExtension {
         if (targetFleet.status != FleetStatus.Preparing)
             revert AlreadyMoving({fleetId: fleetId});
 
-        _fleets[fleetId].status = FleetStatus.Travelling;
-        _fleets[fleetId].toPlanetId = toPlanetId;
-        _fleets[fleetId].arrivalBlock =
+        if(IPlanets(sanctis.extension("PLANETS")).planet(toPlanetId).status == IPlanets.PlanetStatus.Unknown)
+            revert IPlanets.InvalidPlanet({ planet: toPlanetId });
+
+        targetFleet.status = FleetStatus.Travelling;
+        targetFleet.toPlanetId = toPlanetId;
+        targetFleet.arrivalBlock =
             block.number +
             IPlanets(sanctis.extension("PLANETS")).distance(
                 targetFleet.fromPlanetId,
                 toPlanetId
             ) /
-            targetFleet.speed;
+            (targetFleet.totalSpeed / targetFleet.ships);
+
+        _fleets[fleetId] = targetFleet;
+    }
+
+    function settleFleet(uint256 fleetId) external {
+        Fleet memory targetFleet = _fleets[fleetId];
+
+        if (
+            targetFleet.status != FleetStatus.Travelling &&
+            targetFleet.arrivalBlock > block.number
+        ) revert NotArrivedYet({fleetId: fleetId});
+
+        targetFleet.status = FleetStatus.Preparing;
+        targetFleet.fromPlanetId = targetFleet.toPlanetId;
+        targetFleet.arrivalBlock = 0;
+
+        _fleets[fleetId] = targetFleet;
     }
 }

@@ -125,7 +125,7 @@ contract SanctisTest is DSTest {
         uint256 homeworld = 1020;
         commanders.create("Tester", humans);
         planets.create(homeworld);
-        credits.approve(address(planets), COLONIZATION_COST);
+        credits.approve(address(planets), COLONIZATION_COST * 2);
         planets.colonize(commanders.created(), homeworld);
 
         ironExtractors.create(homeworld);
@@ -167,9 +167,22 @@ contract SanctisTest is DSTest {
 
         uint256 fleetId = 42;
         uint256 transportedQuantity = 1000;
+        ironReserve = iron.reserve(homeworld);
         fleets.createFleet(fleetId, 1, homeworld);
         commanders.setApprovalForAll(address(transporters), true);
-        commanders.setApprovalForAll(address(fleets), true);
         transporters.addToFleet(fleetId, transportersCount, iron, transportedQuantity);
+        assertEq(transporters.reserve(homeworld), 0);
+        assertEq(iron.reserve(homeworld), ironReserve - transportedQuantity);
+
+        uint256 world2 = 4654987;
+        planets.colonize(1, world2);
+        fleets.moveFleet(fleetId, world2);
+        cheats.roll(fleets.fleet(fleetId).arrivalBlock);
+        fleets.settleFleet(fleetId);
+        transporters.unload(fleetId, iron, transportedQuantity);
+        fleets.removeFromFleet(fleetId, transporters, transportersCount);
+        assertEq(fleets.fleet(fleetId).fromPlanetId, world2);
+        assertEq(iron.reserve(world2), transportedQuantity);
+        assertEq(transporters.reserve(world2), transportersCount);
     }
 }
