@@ -9,7 +9,6 @@ import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
 import "../interfaces/IFleets.sol";
-import "../interfaces/ITransporters.sol";
 import "../SanctisModule.sol";
 
 contract Ship is IShip, SanctisModule {
@@ -19,14 +18,23 @@ contract Ship is IShip, SanctisModule {
     mapping(uint256 => uint256) internal _fleets;
 
     uint256 internal _speed;
+    uint256 internal _offensivePower;
+    uint256 internal _defensivePower;
+    uint256 internal _capacity;
     Cost[] internal _unitCosts;
 
     constructor(
         ISanctis newSanctis,
         uint256 speed_,
+        uint256 offensivePower_,
+        uint256 defensivePower_,
+        uint256 capacity_,
         Cost[] memory costs
     ) SanctisModule(newSanctis) {
         _speed = speed_;
+        _offensivePower = offensivePower_;
+        _defensivePower = defensivePower_;
+        _capacity = capacity_;
 
         uint256 i;
         for (; i < costs.length; ++i) {
@@ -38,7 +46,19 @@ contract Ship is IShip, SanctisModule {
     function speed() external view returns (uint256) {
         return _speed;
     }
-    
+
+    function offensivePower() external view returns (uint256) {
+        return _offensivePower;
+    }
+
+    function defensivePower() external view returns (uint256) {
+        return _defensivePower;
+    }
+
+    function capacity() external view returns (uint256) {
+        return _defensivePower;
+    }
+
     function unitCosts() external view returns (Cost[] memory) {
         return _unitCosts;
     }
@@ -62,7 +82,7 @@ contract Ship is IShip, SanctisModule {
 
     function destroy(uint256 planetId, uint256 amount) external onlyAllowed {
         // TODO: Refunds
-        
+
         burn(planetId, amount);
     }
 
@@ -72,49 +92,5 @@ contract Ship is IShip, SanctisModule {
 
     function burn(uint256 planetId, uint256 amount) public onlyAllowed {
         _reserves[planetId] -= amount;
-    }
-
-    /* ========== Helpers ========== */
-    function _checkIsPlanetOwner(address player, uint256 planetId)
-        internal
-        view
-    {
-        if (
-            player !=
-            ICommanders(sanctis.extension("COMMANDERS")).ownerOf(
-                IPlanets(sanctis.extension("PLANETS")).planet(planetId).ruler
-            )
-        ) revert PlanetNotOwned({player: player, planet: planetId});
-    }
-
-    function _checkAuthorizedPlayer(address player, uint256 planetId)
-        internal
-        view
-    {
-        if (
-            player !=
-            ICommanders(sanctis.extension("COMMANDERS")).ownerOf(
-                IPlanets(sanctis.extension("PLANETS")).planet(planetId).ruler
-            ) &&
-            !ICommanders(sanctis.extension("COMMANDERS")).isApprovedForAll(
-                ICommanders(sanctis.extension("COMMANDERS")).ownerOf(
-                    IPlanets(sanctis.extension("PLANETS")).planet(planetId).ruler
-                ),
-                player
-            )
-        ) revert UnauthorizedPlayer({player: player, planet: planetId});
-    }
-
-    function _checkFleetIsOnPlanet(uint256 fleetId, uint256 planetId)
-        internal
-        view
-    {
-        IFleets.Fleet memory f = IFleets(sanctis.extension("FLEETS")).fleet(fleetId);
-        if (
-            (f.fromPlanetId == planetId &&
-                f.status == IFleets.FleetStatus.Preparing) ||
-            (f.toPlanetId == planetId &&
-                f.status == IFleets.FleetStatus.Arrived)
-        ) revert InvalidFleet({fleet: fleetId});
     }
 }

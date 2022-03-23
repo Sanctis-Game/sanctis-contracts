@@ -114,16 +114,14 @@ contract Extractors is IExtractors, SanctisModule {
         _planetIsUpgradable(planetId);
 
         harvest(planetId);
-        InternalExtractor storage e = _extractors[planetId];
-        e.level += 1;
-        e.lastUpgrade = block.number;
-        e.lastHarvest = block.number + _upgradeDelay;
+        _extractors[planetId].level += 1;
+        _extractors[planetId].lastUpgrade = block.number;
+        _extractors[planetId].lastHarvest = block.number + _upgradeDelay;
 
-        Cost[] memory costs = _baseCosts;
-        for (uint256 i = 0; i < costs.length; i++) {
-            costs[i].resource.burn(
+        for (uint256 i = 0; i < _baseCosts.length; i++) {
+            _baseCosts[i].resource.burn(
                 planetId, 
-                costs[i].quantity +
+                _baseCosts[i].quantity +
                 _costRates[i].quantity *
                 _extractors[planetId].level
             );
@@ -143,12 +141,10 @@ contract Extractors is IExtractors, SanctisModule {
         view
         returns (Cost[] memory)
     {
-        uint256 extractorLevel = _extractors[planetId].level;
         Cost[] memory costs = _baseCosts;
-        Cost[] memory rates = _costRates;
 
         for (uint256 j = 0; j < costs.length; j++) {
-            costs[j].quantity += extractorLevel * rates[j].quantity;
+            costs[j].quantity += _extractors[planetId].level * _costRates[j].quantity;
         }
 
         return costs;

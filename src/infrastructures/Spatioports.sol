@@ -14,15 +14,19 @@ import "../interfaces/ISpatioports.sol";
 import "../SanctisModule.sol";
 
 contract Spatioports is ISpatioports, SanctisModule {
+    /* ========== Sanctis extensions used ========== */
+    string constant COMMANDERS = "COMMANDERS";
+    string constant CREDITS = "CREDITS";
+
+    /* ========== Sanctis extensions used ========== */
     /// @dev Compact struct which can be used to infer other info
     struct InternalSpatioport {
         uint256 level;
         uint256 lastUpgrade;
         uint256 lastHarvest;
     }
-
+    
     mapping(uint256 => InternalSpatioport) internal _spatioports;
-
     uint256 internal _upgradeDelay;
     Cost[] internal _baseCosts;
     Cost[] internal _costRates;

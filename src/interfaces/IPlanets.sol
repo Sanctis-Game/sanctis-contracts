@@ -9,14 +9,10 @@ interface IPlanets {
 
     /// @notice Uncharted planets have never been explored
     /// @notice Colonized planets have at least settlement
-    /// @notice Federated planets are ruled by a Citizen
-    /// @notice Occupied planets lost control to a barbarian
     enum PlanetStatus {
         Unknown,
         Uncharted,
         Colonized,
-        Federated,
-        Occupied,
         Sanctis
     }
 
@@ -32,6 +28,8 @@ interface IPlanets {
     function create(uint256 planetId) external;
 
     function colonize(uint256 ruler, uint256 planetId) external;
+
+    function setPlanetStatus(uint256 planetId, PlanetStatus status) external;
 
     function planet(uint256 planetId) external view returns (Planet memory);
 

@@ -16,9 +16,13 @@ contract Planets is IPlanets, SanctisExtension {
     using EnumerableSet for EnumerableSet.UintSet;
     using FixedPointMathLib for uint256;
 
+    /* ========== Sanctis extensions used ========== */
+    string constant COMMANDERS = "COMMANDERS";
+    string constant CREDITS = "CREDITS";
+
+    /* ========== Contract variables ========== */
     mapping(uint256 => Planet) private _planets;
     mapping(uint256 => EnumerableSet.UintSet) _commanderPlanets;
-
     uint256 public colonizationCost;
 
     constructor(
@@ -72,18 +76,22 @@ contract Planets is IPlanets, SanctisExtension {
                 status: _planets[planetId].status
             });
 
-        if (ICommanders(sanctis.extension("COMMANDERS")).ownerOf(ruler) != msg.sender)
+        if (ICommanders(sanctis.extension(COMMANDERS)).ownerOf(ruler) != msg.sender)
             revert NotTheOwner({ruler: planetId});
 
         _planets[planetId].ruler = ruler;
         _planets[planetId].status = PlanetStatus.Colonized;
         _commanderPlanets[ruler].add(planetId);
 
-        ISpaceCredits(sanctis.extension("CREDITS")).transferFrom(
+        ISpaceCredits(sanctis.extension(CREDITS)).transferFrom(
             msg.sender,
             sanctis.parliamentExecutor(),
             colonizationCost
         );
+    }
+
+    function setPlanetStatus(uint256 planetId, PlanetStatus status) external onlyAllowed {
+        _planets[planetId].status = status;
     }
 
     function planet(uint256 planetId) external view returns (Planet memory) {

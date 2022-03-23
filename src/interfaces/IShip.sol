@@ -13,6 +13,12 @@ interface IShip {
 
     function speed() external view returns (uint256);
 
+    function offensivePower() external view returns (uint256);
+    
+    function defensivePower() external view returns (uint256);
+
+    function capacity() external view returns (uint256);
+
     function unitCosts() external view returns (Cost[] memory);
 
     function reserve(uint256 planetId) external view returns (uint256);

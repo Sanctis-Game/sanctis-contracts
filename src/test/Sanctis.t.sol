@@ -15,7 +15,7 @@ import "../races/Humans.sol";
 import "../resources/Iron.sol";
 import "../infrastructures/Extractors.sol";
 import "../infrastructures/Spatioports.sol";
-import "../ships/Transporters.sol";
+import "../ships/Ship.sol";
 
 interface CheatCodes {
     // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input
@@ -38,6 +38,8 @@ contract SanctisTest is DSTest {
     uint256 constant EXTRACTORS_DELAY = 1000;
     uint256 constant TRANSPORTERS_CAPACITY = 1000;
     uint256 constant TRANSPORTERS_SPEED = 1000;
+    uint256 constant PLUNDER_PERIOD = 10;
+    uint256 constant PLUNDER_RATE = 1000;
 
     Sanctis sanctis;
     SpaceCredits credits;
@@ -50,7 +52,9 @@ contract SanctisTest is DSTest {
     Iron iron;
     Extractors ironExtractors;
     Spatioports spatioports;
-    Transporters transporters;
+    Ship transporters;
+    Ship scouts;
+    Ship destroyers;
 
     function setUp() public {
         sanctis = new Sanctis();
@@ -61,7 +65,7 @@ contract SanctisTest is DSTest {
             sanctis,
             COLONIZATION_COST
         );
-        fleets = new Fleets(sanctis);
+        fleets = new Fleets(sanctis, PLUNDER_PERIOD, PLUNDER_RATE);
 
         sanctis.setParliamentExecutor(address(this));
 
@@ -104,13 +108,40 @@ contract SanctisTest is DSTest {
             spatioportsRates
         );
 
+        uint256 transportersDefensivePower = 100;
         Cost[] memory transportersCosts = new Cost[](1);
         transportersCosts[0].resource = iron;
         transportersCosts[0].quantity = 100;
-        transporters = new Transporters(
+        transporters = new Ship(
             sanctis,
-            TRANSPORTERS_CAPACITY,
             TRANSPORTERS_SPEED,
+            0,
+            transportersDefensivePower,
+            TRANSPORTERS_CAPACITY,
+            transportersCosts
+        );
+
+        Cost[] memory scoutsCosts = new Cost[](1);
+        scoutsCosts[0].resource = iron;
+        scoutsCosts[0].quantity = 100;
+        scouts = new Ship(
+            sanctis,
+            TRANSPORTERS_SPEED * 10,
+            0,
+            10,
+            0,
+            transportersCosts
+        );
+
+        Cost[] memory destroyersCosts = new Cost[](1);
+        destroyersCosts[0].resource = iron;
+        destroyersCosts[0].quantity = 100;
+        destroyers = new Ship(
+            sanctis,
+            TRANSPORTERS_SPEED * 2,
+            1500,
+            100,
+            0,
             transportersCosts
         );
 
@@ -119,6 +150,8 @@ contract SanctisTest is DSTest {
         sanctis.setAllowed(address(ironExtractors), true);
         sanctis.setAllowed(address(spatioports), true);
         sanctis.setAllowed(address(transporters), true);
+        sanctis.setAllowed(address(scouts), true);
+        sanctis.setAllowed(address(destroyers), true);
     }
 
     function testCreateCitizen() public {
@@ -170,19 +203,37 @@ contract SanctisTest is DSTest {
         ironReserve = iron.reserve(homeworld);
         fleets.createFleet(fleetId, 1, homeworld);
         commanders.setApprovalForAll(address(transporters), true);
-        transporters.addToFleet(fleetId, transportersCount, iron, transportedQuantity);
+        fleets.addToFleet(fleetId, transporters, transportersCount);
+        fleets.load(fleetId, iron, transportedQuantity);
         assertEq(transporters.reserve(homeworld), 0);
         assertEq(iron.reserve(homeworld), ironReserve - transportedQuantity);
 
         uint256 world2 = 4654987;
         planets.colonize(1, world2);
+        fleets.putInOrbit(fleetId);
         fleets.moveFleet(fleetId, world2);
         cheats.roll(fleets.fleet(fleetId).arrivalBlock);
         fleets.settleFleet(fleetId);
-        transporters.unload(fleetId, iron, transportedQuantity);
+        fleets.unload(fleetId, iron, transportedQuantity);
+        fleets.land(fleetId);
         fleets.removeFromFleet(fleetId, transporters, transportersCount);
         assertEq(fleets.fleet(fleetId).fromPlanetId, world2);
         assertEq(iron.reserve(world2), transportedQuantity);
         assertEq(transporters.reserve(world2), transportersCount);
+
+        uint256 fleet2 = 56458;
+        uint256 amountDestroyers = iron.reserve(world2) / 100 - 2;
+        spatioports.create(world2);
+        spatioports.build(world2, destroyers, amountDestroyers);
+        ironReserve = iron.reserve(world2);
+        fleets.addToFleet(fleetId, transporters, transportersCount);
+        fleets.putInOrbit(fleetId);
+        fleets.createFleet(fleet2, 1, world2);
+        fleets.addToFleet(fleet2, destroyers, amountDestroyers);
+        fleets.defendPlanet(world2, fleetId);
+        assertEq(uint256(fleets.fleet(fleetId).status), uint256(IFleets.FleetStatus.Destroyed));
+        fleets.putInOrbit(fleet2);
+        fleets.plunder(fleet2, iron);
+        assertEq(iron.reserve(world2), ironReserve - ironReserve * PLUNDER_RATE / 10000);
     }
 }

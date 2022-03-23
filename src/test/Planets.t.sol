@@ -25,41 +25,54 @@ interface CheatCodes {
 
     // Set block.timestamp
     function warp(uint256) external;
+
+    // When fuzzing, generate new inputs if conditional not met
+    function assume(bool) external;
 }
 
-contract CommandersTest is DSTest {
+contract PlanetsTest is DSTest {
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
 
     Sanctis sanctis;
+    SpaceCredits credits;
     Commanders commanders;
+    Planets planets;
     Humans humans;
 
     function setUp() public {
         sanctis = new Sanctis();
+        credits = new SpaceCredits(sanctis);
         commanders = new Commanders(sanctis);
+        planets = new Planets(sanctis, 0);
         humans = new Humans(sanctis);
 
+        sanctis.setParliamentExecutor(address(this));
+        sanctis.insertAndAllowExtension(credits);
         sanctis.insertAndAllowExtension(commanders);
+        sanctis.insertAndAllowExtension(planets);
         sanctis.setAllowed(address(humans), true);
     }
 
-    function testCreate() public {
-        commanders.create("Tester", humans);
-        commanders.create("Tester and tests", humans);
-        commanders.create("Testerrrrr", humans);
-        commanders.create("Tester420", humans);
-        commanders.create("Tester 420", humans);
+    function testCreatePlanet(uint256 homeworld) public {
+        cheats.assume(
+            homeworld != 0 && homeworld < type(uint240).max
+        );
+
+        commanders.create("T", humans);
+        planets.create(homeworld);
     }
 
-    function testFailCreateBadCharacter1() public {
-        commanders.create("Tester_ujuj", humans);
-    }
-    
-    function testFailCreateBadCharacter2() public {
-        commanders.create("Tester+ujuj", humans);
-    }
+    function testColonizePlanet(uint256 cost, uint256 homeworld) public {
+        cheats.assume(
+            cost < 2**224 && homeworld != 0 && homeworld < type(uint240).max
+        );
 
-    function testFailCreateTooLong() public {
-        commanders.create("TesteTesteTesteTesteTestee", humans);
+        planets = new Planets(sanctis, cost);
+        sanctis.insertAndAllowExtension(planets);
+
+        credits.mint(address(this), cost);
+        commanders.create("T", humans);
+        credits.approve(address(planets), cost);
+        planets.colonize(commanders.created(), homeworld);
     }
 }
