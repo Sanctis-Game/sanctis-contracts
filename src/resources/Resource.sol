@@ -19,14 +19,20 @@ abstract contract Resource is IResource, SanctisModule {
     mapping(uint256 => uint256) internal _reserves;
 
     string internal _name;
+    string internal _symbol;
 
-    constructor(ISanctis sanctis_, string memory name_) SanctisModule(sanctis_) {
+    constructor(ISanctis sanctis_, string memory name_, string memory symbol_) SanctisModule(sanctis_) {
         _name = name_;
+        _symbol = symbol_;
     }
 
     /* ========== Resource interfaces ========== */
     function name() external view returns (string memory) {
         return _name;
+    }
+
+    function symbol() external view returns (string memory) {
+        return _symbol;
     }
 
     /**
@@ -37,14 +43,14 @@ abstract contract Resource is IResource, SanctisModule {
     function mint(
         uint256 planetId,
         uint256 amount
-    ) external onlyAllowed {
+    ) virtual external onlyAllowed {
         _reserves[planetId] += amount;
     }
 
     function burn(
         uint256 planetId,
         uint256 amount
-    ) external onlyAllowed {
+    ) virtual external onlyAllowed {
         _reserves[planetId] -= amount;
     }
 

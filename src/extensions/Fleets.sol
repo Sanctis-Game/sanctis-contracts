@@ -254,7 +254,6 @@ contract Fleets is IFleets, SanctisExtension {
         uint256 amount
     ) external {
         _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
-        _assertIsOnRuledPlanet(fleetId);
         if (
             _fleets[fleetId].status != FleetStatus.Preparing &&
             _fleets[fleetId].status != FleetStatus.Orbiting

@@ -56,7 +56,7 @@ contract Ship is IShip, SanctisModule {
     }
 
     function capacity() external view returns (uint256) {
-        return _defensivePower;
+        return _capacity;
     }
 
     function unitCosts() external view returns (Cost[] memory) {
