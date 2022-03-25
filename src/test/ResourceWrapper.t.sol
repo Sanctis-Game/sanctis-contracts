@@ -80,8 +80,8 @@ contract ResourceWrapperTest is DSTest {
         spatioports = new Spatioports(
             sanctis,
             EXTRACTORS_DELAY,
-            new Cost[](0),
-            new Cost[](0)
+            new Quantity[](0),
+            new Quantity[](0)
         );
 
         uint256 transportersDefensivePower = 100;
@@ -91,7 +91,7 @@ contract ResourceWrapperTest is DSTest {
             0,
             transportersDefensivePower,
             TRANSPORTERS_CAPACITY,
-            new Cost[](0)
+            new Quantity[](0)
         );
 
         sanctis.setAllowed(address(humans), true);

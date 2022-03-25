@@ -2,13 +2,13 @@
 pragma solidity 0.8.10;
 
 import "./IInfrastructure.sol";
-import "./Cost.sol";
+import "./Quantity.sol";
 
 interface IFusionPlants is IInfrastructure {
     struct FusionPlant {
         uint256 level;
         uint256 production;
-        Cost[] nextCosts;
+        Quantity[] nextCosts;
         uint256 nextUpgrade;
     }
 

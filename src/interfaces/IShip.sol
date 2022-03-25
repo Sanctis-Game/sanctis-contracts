@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "./Cost.sol";
+import "./Quantity.sol";
 import "./ISanctis.sol";
 
 interface IShip {
@@ -19,7 +19,7 @@ interface IShip {
 
     function capacity() external view returns (uint256);
 
-    function unitCosts() external view returns (Cost[] memory);
+    function unitCosts() external view returns (Quantity[] memory);
 
     function reserve(uint256 planetId) external view returns (uint256);
 

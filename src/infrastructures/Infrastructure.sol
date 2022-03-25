@@ -5,7 +5,7 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/Cost.sol";
+import "../interfaces/Quantity.sol";
 import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
@@ -26,14 +26,14 @@ contract Infrastructure is IInfrastructure, SanctisModule {
 
     mapping(uint256 => BaseInfrastructure) internal _infrastructures;
     uint256 internal _upgradeDelay;
-    Cost[] internal _baseCosts;
-    Cost[] internal _costRates;
+    Quantity[] internal _baseCosts;
+    Quantity[] internal _costRates;
 
     constructor(
         ISanctis sanctis,
         uint256 delay,
-        Cost[] memory baseCosts,
-        Cost[] memory costRates
+        Quantity[] memory baseCosts,
+        Quantity[] memory costRates
     ) SanctisModule(sanctis) {
         _upgradeDelay = delay;
 
@@ -56,7 +56,7 @@ contract Infrastructure is IInfrastructure, SanctisModule {
             lastUpgrade: 0
         });
 
-        Cost[] memory costs = _baseCosts;
+        Quantity[] memory costs = _baseCosts;
         for (uint256 i = 0; i < costs.length; i++) {
             costs[i].resource.burn(planetId, costs[i].quantity);
         }
@@ -89,7 +89,7 @@ contract Infrastructure is IInfrastructure, SanctisModule {
     function costsNextLevel(uint256 planetId)
         external
         view
-        returns (Cost[] memory)
+        returns (Quantity[] memory)
     {
         return _costsAtLevel(_infrastructures[planetId].level);
     }
@@ -98,11 +98,11 @@ contract Infrastructure is IInfrastructure, SanctisModule {
     function _costsAtLevel(uint256 currentLevel)
         internal
         view
-        returns (Cost[] memory)
+        returns (Quantity[] memory)
     {
-        Cost[] memory costs = _baseCosts;
-        Cost[] memory lastCosts = currentLevel == 0
-            ? new Cost[](costs.length)
+        Quantity[] memory costs = _baseCosts;
+        Quantity[] memory lastCosts = currentLevel == 0
+            ? new Quantity[](costs.length)
             : _costsAtLevel(currentLevel - 1);
 
         uint256 j;

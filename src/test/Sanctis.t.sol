@@ -13,7 +13,7 @@ import "../extensions/Planets.sol";
 import "../extensions/Fleets.sol";
 import "../races/Humans.sol";
 import "../resources/Iron.sol";
-import "../infrastructures/Extractors.sol";
+import "../infrastructures/ResourceProducer.sol";
 import "../infrastructures/Spatioports.sol";
 import "../ships/Ship.sol";
 
@@ -50,7 +50,7 @@ contract SanctisTest is DSTest {
 
     Humans humans;
     Iron iron;
-    Extractors ironExtractors;
+    ResourceProducer ironExtractors;
     Spatioports spatioports;
     Ship transporters;
     Ship scouts;
@@ -79,26 +79,31 @@ contract SanctisTest is DSTest {
         humans = new Humans(sanctis);
         iron = new Iron(sanctis);
 
-        Cost[] memory extractorsCosts = new Cost[](1);
+        Quantity[] memory extractorsRewardsBase = new Quantity[](1);
+        extractorsRewardsBase[0].resource = iron;
+        extractorsRewardsBase[0].quantity = EXTRACTORS_BASE_REWARDS;
+        Quantity[] memory extractorsRewardsRate = new Quantity[](1);
+        extractorsRewardsRate[0].resource = iron;
+        extractorsRewardsRate[0].quantity = EXTRACTORS_REWARDS_RATE;
+        Quantity[] memory extractorsCosts = new Quantity[](1);
         extractorsCosts[0].resource = iron;
         extractorsCosts[0].quantity = 0;
-        Cost[] memory extractorsRates = new Cost[](1);
+        Quantity[] memory extractorsRates = new Quantity[](1);
         extractorsRates[0].resource = iron;
         extractorsRates[0].quantity = 100;
-        ironExtractors = new Extractors(
+        ironExtractors = new ResourceProducer(
             sanctis,
-            iron,
-            EXTRACTORS_BASE_REWARDS,
-            EXTRACTORS_REWARDS_RATE,
             EXTRACTORS_DELAY,
+            extractorsRewardsBase,
+            extractorsRewardsRate,
             extractorsCosts,
             extractorsRates
         );
 
-        Cost[] memory spatioportsCosts = new Cost[](1);
+        Quantity[] memory spatioportsCosts = new Quantity[](1);
         spatioportsCosts[0].resource = iron;
         spatioportsCosts[0].quantity = 100;
-        Cost[] memory spatioportsRates = new Cost[](1);
+        Quantity[] memory spatioportsRates = new Quantity[](1);
         spatioportsRates[0].resource = iron;
         spatioportsRates[0].quantity = 100;
         spatioports = new Spatioports(
@@ -109,7 +114,7 @@ contract SanctisTest is DSTest {
         );
 
         uint256 transportersDefensivePower = 100;
-        Cost[] memory transportersCosts = new Cost[](1);
+        Quantity[] memory transportersCosts = new Quantity[](1);
         transportersCosts[0].resource = iron;
         transportersCosts[0].quantity = 100;
         transporters = new Ship(
@@ -121,7 +126,7 @@ contract SanctisTest is DSTest {
             transportersCosts
         );
 
-        Cost[] memory scoutsCosts = new Cost[](1);
+        Quantity[] memory scoutsCosts = new Quantity[](1);
         scoutsCosts[0].resource = iron;
         scoutsCosts[0].quantity = 100;
         scouts = new Ship(
@@ -133,7 +138,7 @@ contract SanctisTest is DSTest {
             transportersCosts
         );
 
-        Cost[] memory destroyersCosts = new Cost[](1);
+        Quantity[] memory destroyersCosts = new Quantity[](1);
         destroyersCosts[0].resource = iron;
         destroyersCosts[0].quantity = 100;
         destroyers = new Ship(
@@ -192,7 +197,7 @@ contract SanctisTest is DSTest {
         spatioports.create(homeworld);
         assertEq(iron.reserve(homeworld), ironReserve - 100);
 
-        uint256 transportersCount = 100;
+        uint256 transportersCount = 10;
         ironReserve = iron.reserve(homeworld);
         spatioports.build(homeworld, transporters, transportersCount);
         assertEq(iron.reserve(homeworld), ironReserve - 100 * transportersCount);

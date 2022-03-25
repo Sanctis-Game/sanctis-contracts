@@ -5,7 +5,7 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/Cost.sol";
+import "../interfaces/Quantity.sol";
 import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
@@ -25,8 +25,8 @@ contract FusionPlants is Infrastructure, IFusionPlants {
         uint256 rewardBase,
         uint256 rewardRate,
         uint256 delay,
-        Cost[] memory costsBase,
-        Cost[] memory costsRates
+        Quantity[] memory costsBase,
+        Quantity[] memory costsRates
     ) Infrastructure(sanctis, delay, costsBase, costsRates) {
         _energy = energy;
         _baseRewards = rewardBase;

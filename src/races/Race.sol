@@ -6,8 +6,6 @@ import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerab
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 import "../interfaces/ISanctis.sol";
-import "../interfaces/ICommanders.sol";
-import "../interfaces/IPlanets.sol";
 import "../interfaces/IRace.sol";
 import "../SanctisModule.sol";
 

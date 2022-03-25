@@ -10,11 +10,7 @@ import "../interfaces/ISpaceCredits.sol";
 import "../extensions/SpaceCredits.sol";
 import "../extensions/Commanders.sol";
 import "../extensions/Planets.sol";
-import "../extensions/Fleets.sol";
 import "../races/Humans.sol";
-import "../resources/Iron.sol";
-import "../infrastructures/Extractors.sol";
-import "../infrastructures/Spatioports.sol";
 
 interface CheatCodes {
     // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input

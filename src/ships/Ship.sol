@@ -21,7 +21,7 @@ contract Ship is IShip, SanctisModule {
     uint256 internal _offensivePower;
     uint256 internal _defensivePower;
     uint256 internal _capacity;
-    Cost[] internal _unitCosts;
+    Quantity[] internal _unitCosts;
 
     constructor(
         ISanctis newSanctis,
@@ -29,7 +29,7 @@ contract Ship is IShip, SanctisModule {
         uint256 offensivePower_,
         uint256 defensivePower_,
         uint256 capacity_,
-        Cost[] memory costs
+        Quantity[] memory costs
     ) SanctisModule(newSanctis) {
         _speed = speed_;
         _offensivePower = offensivePower_;
@@ -59,7 +59,7 @@ contract Ship is IShip, SanctisModule {
         return _capacity;
     }
 
-    function unitCosts() external view returns (Cost[] memory) {
+    function unitCosts() external view returns (Quantity[] memory) {
         return _unitCosts;
     }
 

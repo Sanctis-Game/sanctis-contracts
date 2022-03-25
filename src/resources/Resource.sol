@@ -9,7 +9,6 @@ import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
 import "../interfaces/IResource.sol";
-import "../interfaces/IExtractors.sol";
 import "../SanctisModule.sol";
 
 /**
