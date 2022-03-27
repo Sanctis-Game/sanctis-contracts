@@ -12,9 +12,9 @@ import "../interfaces/IResource.sol";
 import "../SanctisModule.sol";
 
 /**
- * Abstract contract defining a base for resource handling
+ * Contract defining a base for resource handling
  */
-abstract contract Resource is IResource, SanctisModule {
+contract Resource is IResource, SanctisModule {
     mapping(uint256 => uint256) internal _reserves;
 
     string internal _name;

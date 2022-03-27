@@ -5,44 +5,46 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/Quantity.sol";
 import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
 import "../interfaces/IResource.sol";
-import "../interfaces/IFusionPlants.sol";
+import "../interfaces/IPowerPlants.sol";
 import "./Infrastructure.sol";
 
-contract FusionPlants is Infrastructure, IFusionPlants {
+contract PowerPlants is Infrastructure, IPowerPlants {
     /* ========== Contract variables ========== */
-    IResource private _energy;
-    uint256 private _baseRewards;
-    uint256 private _rewardsRate;
+    IResource internal _energy;
+    uint256 internal _rewardsBase;
+    uint256 internal _rewardsRates;
 
     constructor(
         ISanctis sanctis,
         IResource energy,
-        uint256 rewardBase,
-        uint256 rewardRate,
+        uint256 rewardsBase,
+        uint256 rewardsRates,
         uint256 delay,
-        Quantity[] memory costsBase,
-        Quantity[] memory costsRates
-    ) Infrastructure(sanctis, delay, costsBase, costsRates) {
+        IResource[] memory costsResources,
+        uint256[] memory costsBase,
+        uint256[] memory costsRates
+    ) Infrastructure(sanctis, delay, costsResources, costsBase, costsRates) {
         _energy = energy;
-        _baseRewards = rewardBase;
-        _rewardsRate = rewardRate;
+        _rewardsBase = rewardsBase;
+        _rewardsRates = rewardsRates;
     }
 
-    /* ========== Extractor interfaces ========== */
-    function fusionPlant(uint256 planetId)
+    /* ========== Power plant interfaces ========== */
+    function powerPlant(uint256 planetId)
         external
         view
-        returns (FusionPlant memory)
+        returns (PowerPlant memory)
     {
         return
-            FusionPlant({
+            PowerPlant({
                 level: _infrastructures[planetId].level,
+                energy: _energy,
                 production: _production(_infrastructures[planetId].level),
+                costsResources: _costsResources,
                 nextCosts: _costsAtLevel(_infrastructures[planetId].level),
                 nextUpgrade: _infrastructures[planetId].lastUpgrade + _upgradeDelay**_infrastructures[planetId].level
             });
@@ -59,6 +61,6 @@ contract FusionPlants is Infrastructure, IFusionPlants {
 
     /* ========== Helpers ========== */
     function _production(uint256 infraLevel) internal view returns (uint256) {
-        return _baseRewards + infraLevel * _rewardsRate;
+        return _rewardsBase + infraLevel * _rewardsRates;
     }
 }

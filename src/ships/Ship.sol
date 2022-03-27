@@ -21,7 +21,8 @@ contract Ship is IShip, SanctisModule {
     uint256 internal _offensivePower;
     uint256 internal _defensivePower;
     uint256 internal _capacity;
-    Quantity[] internal _unitCosts;
+    IResource[] internal _costsResources;
+    uint256[] internal _unitCosts;
 
     constructor(
         ISanctis newSanctis,
@@ -29,7 +30,8 @@ contract Ship is IShip, SanctisModule {
         uint256 offensivePower_,
         uint256 defensivePower_,
         uint256 capacity_,
-        Quantity[] memory costs
+        IResource[] memory costsResources,
+        uint256[] memory costs
     ) SanctisModule(newSanctis) {
         _speed = speed_;
         _offensivePower = offensivePower_;
@@ -38,6 +40,7 @@ contract Ship is IShip, SanctisModule {
 
         uint256 i;
         for (; i < costs.length; ++i) {
+            _costsResources.push(costsResources[i]);
             _unitCosts.push(costs[i]);
         }
     }
@@ -59,8 +62,8 @@ contract Ship is IShip, SanctisModule {
         return _capacity;
     }
 
-    function unitCosts() external view returns (Quantity[] memory) {
-        return _unitCosts;
+    function unitCosts() external view returns (IResource[] memory, uint256[] memory) {
+        return (_costsResources, _unitCosts);
     }
 
     function reserve(uint256 planetId) external view returns (uint256) {
@@ -71,9 +74,9 @@ contract Ship is IShip, SanctisModule {
         // Pay the unit
         uint256 i;
         for (; i < _unitCosts.length; ++i) {
-            _unitCosts[i].resource.burn(
+            _costsResources[i].burn(
                 planetId,
-                _unitCosts[i].quantity * amount
+                _unitCosts[i] * amount
             );
         }
 

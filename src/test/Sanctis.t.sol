@@ -12,7 +12,7 @@ import "../extensions/Commanders.sol";
 import "../extensions/Planets.sol";
 import "../extensions/Fleets.sol";
 import "../races/Humans.sol";
-import "../resources/Iron.sol";
+import "../resources/Resource.sol";
 import "../infrastructures/ResourceProducer.sol";
 import "../infrastructures/Spatioports.sol";
 import "../ships/Ship.sol";
@@ -49,7 +49,7 @@ contract SanctisTest is DSTest {
     Fleets fleets;
 
     Humans humans;
-    Iron iron;
+    Resource iron;
     ResourceProducer ironExtractors;
     Spatioports spatioports;
     Ship transporters;
@@ -77,77 +77,86 @@ contract SanctisTest is DSTest {
         credits.mint(address(this), 10**27);
 
         humans = new Humans(sanctis);
-        iron = new Iron(sanctis);
+        iron = new Resource(sanctis, "Iron", "IRON");
 
-        Quantity[] memory extractorsRewardsBase = new Quantity[](1);
-        extractorsRewardsBase[0].resource = iron;
-        extractorsRewardsBase[0].quantity = EXTRACTORS_BASE_REWARDS;
-        Quantity[] memory extractorsRewardsRate = new Quantity[](1);
-        extractorsRewardsRate[0].resource = iron;
-        extractorsRewardsRate[0].quantity = EXTRACTORS_REWARDS_RATE;
-        Quantity[] memory extractorsCosts = new Quantity[](1);
-        extractorsCosts[0].resource = iron;
-        extractorsCosts[0].quantity = 0;
-        Quantity[] memory extractorsRates = new Quantity[](1);
-        extractorsRates[0].resource = iron;
-        extractorsRates[0].quantity = 100;
+        IResource[] memory ironMinesRewardsResources = new IResource[](1);
+        ironMinesRewardsResources[0] = iron;
+        uint256[] memory ironMinesRewardsBase = new uint256[](1);
+        ironMinesRewardsBase[0] = EXTRACTORS_BASE_REWARDS;
+        uint256[] memory ironMinesRewardsRates = new uint256[](1);
+        ironMinesRewardsRates[0] = EXTRACTORS_REWARDS_RATE;
+        IResource[] memory ironMinesCostsResources = new IResource[](1);
+        ironMinesCostsResources[0] = iron;
+        uint256[] memory ironMinesCostsBase = new uint256[](1);
+        ironMinesCostsBase[0] = 0;
+        uint256[] memory ironMinesCostsRates = new uint256[](1);
+        ironMinesCostsRates[0] = 100;
         ironExtractors = new ResourceProducer(
             sanctis,
             EXTRACTORS_DELAY,
-            extractorsRewardsBase,
-            extractorsRewardsRate,
-            extractorsCosts,
-            extractorsRates
+            ironMinesRewardsResources,
+            ironMinesRewardsBase,
+            ironMinesRewardsRates,
+            ironMinesCostsResources,
+            ironMinesCostsBase,
+            ironMinesCostsRates
         );
 
-        Quantity[] memory spatioportsCosts = new Quantity[](1);
-        spatioportsCosts[0].resource = iron;
-        spatioportsCosts[0].quantity = 100;
-        Quantity[] memory spatioportsRates = new Quantity[](1);
-        spatioportsRates[0].resource = iron;
-        spatioportsRates[0].quantity = 100;
+        IResource[] memory spatioportsCostsResources = new IResource[](1);
+        spatioportsCostsResources[0] = iron;
+        uint256[] memory spatioportsCostsBase = new uint256[](1);
+        spatioportsCostsBase[0] = 100;
+        uint256[] memory spatioportsCostsRates = new uint256[](1);
+        spatioportsCostsRates[0] = 100;
         spatioports = new Spatioports(
             sanctis,
             EXTRACTORS_DELAY,
-            spatioportsCosts,
-            spatioportsRates
+            spatioportsCostsResources,
+            spatioportsCostsBase,
+            spatioportsCostsRates
         );
 
         uint256 transportersDefensivePower = 100;
-        Quantity[] memory transportersCosts = new Quantity[](1);
-        transportersCosts[0].resource = iron;
-        transportersCosts[0].quantity = 100;
+        IResource[] memory transportersCostsResources = new IResource[](1);
+        transportersCostsResources[0] = iron;
+        uint256[] memory transportersCosts = new uint256[](1);
+        transportersCosts[0] = 100;
         transporters = new Ship(
             sanctis,
             TRANSPORTERS_SPEED,
             0,
             transportersDefensivePower,
             TRANSPORTERS_CAPACITY,
+            transportersCostsResources,
             transportersCosts
         );
 
-        Quantity[] memory scoutsCosts = new Quantity[](1);
-        scoutsCosts[0].resource = iron;
-        scoutsCosts[0].quantity = 100;
+        IResource[] memory scoutsCostsResources = new IResource[](1);
+        scoutsCostsResources[0] = iron;
+        uint256[] memory scoutsCosts = new uint256[](1);
+        scoutsCosts[0] = 100;
         scouts = new Ship(
             sanctis,
             TRANSPORTERS_SPEED * 10,
             0,
             10,
             0,
-            transportersCosts
+            scoutsCostsResources,
+            scoutsCosts
         );
 
-        Quantity[] memory destroyersCosts = new Quantity[](1);
-        destroyersCosts[0].resource = iron;
-        destroyersCosts[0].quantity = 100;
+        IResource[] memory destroyersCostsResources = new IResource[](1);
+        destroyersCostsResources[0] = iron;
+        uint256[] memory destroyersCosts = new uint256[](1);
+        destroyersCosts[0] = 100;
         destroyers = new Ship(
             sanctis,
             TRANSPORTERS_SPEED * 2,
             1500,
             100,
             0,
-            transportersCosts
+            destroyersCostsResources,
+            destroyersCosts
         );
 
         sanctis.setAllowed(address(humans), true);

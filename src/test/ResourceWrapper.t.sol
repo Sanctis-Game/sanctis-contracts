@@ -11,7 +11,7 @@ import "../extensions/Commanders.sol";
 import "../extensions/Planets.sol";
 import "../extensions/Fleets.sol";
 import "../races/Humans.sol";
-import "../resources/Iron.sol";
+import "../resources/Resource.sol";
 import "../infrastructures/Spatioports.sol";
 import "../ships/Ship.sol";
 import "../utils/ResourceWrapper.sol";
@@ -49,7 +49,7 @@ contract ResourceWrapperTest is DSTest {
     ResourceWrapper wrapper;
 
     Humans humans;
-    Iron iron;
+    Resource iron;
     Spatioports spatioports;
     Ship transporters;
 
@@ -75,13 +75,14 @@ contract ResourceWrapperTest is DSTest {
         credits.mint(address(this), 10**27);
 
         humans = new Humans(sanctis);
-        iron = new Iron(sanctis);
+        iron = new Resource(sanctis, "Iron", "IRON");
 
         spatioports = new Spatioports(
             sanctis,
             EXTRACTORS_DELAY,
-            new Quantity[](0),
-            new Quantity[](0)
+            new IResource[](0),
+            new uint256[](0),
+            new uint256[](0)
         );
 
         uint256 transportersDefensivePower = 100;
@@ -91,7 +92,8 @@ contract ResourceWrapperTest is DSTest {
             0,
             transportersDefensivePower,
             TRANSPORTERS_CAPACITY,
-            new Quantity[](0)
+            new IResource[](0),
+            new uint256[](0)
         );
 
         sanctis.setAllowed(address(humans), true);

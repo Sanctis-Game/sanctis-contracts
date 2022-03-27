@@ -12,7 +12,6 @@ import "../extensions/Commanders.sol";
 import "../extensions/Planets.sol";
 import "../extensions/Fleets.sol";
 import "../races/Humans.sol";
-import "../resources/Iron.sol";
 import "../infrastructures/Spatioports.sol";
 
 interface CheatCodes {

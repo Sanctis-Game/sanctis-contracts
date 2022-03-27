@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "./Quantity.sol";
 import "./ISanctis.sol";
+import "./IResource.sol";
 
 interface IShip {
     error UnauthorizedPlayer(address player, uint256 planet);
@@ -19,7 +19,7 @@ interface IShip {
 
     function capacity() external view returns (uint256);
 
-    function unitCosts() external view returns (Quantity[] memory);
+    function unitCosts() external view returns (IResource[] memory, uint256[] memory);
 
     function reserve(uint256 planetId) external view returns (uint256);
 

@@ -2,7 +2,7 @@
 pragma solidity 0.8.10;
 
 import "./IInfrastructure.sol";
-import "./Quantity.sol";
+import "./IResource.sol";
 
 interface IResourceProducer is IInfrastructure {
     error ExtractorExistence(uint256 planetId);
@@ -11,8 +11,10 @@ interface IResourceProducer is IInfrastructure {
         uint256 level;
         uint256 lastHarvest;
         uint256 nextUpgrade;
-        Quantity[] productionPerBlock;
-        Quantity[] nextCosts;
+        IResource[] producedResources;
+        uint256[] productionPerBlock;
+        IResource[] costsResources;
+        uint256[] nextCosts;
     }
 
     function harvest(uint256 planetId) external;

@@ -5,7 +5,6 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/Quantity.sol";
 import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
@@ -26,21 +25,24 @@ contract Infrastructure is IInfrastructure, SanctisModule {
 
     mapping(uint256 => BaseInfrastructure) internal _infrastructures;
     uint256 internal _upgradeDelay;
-    Quantity[] internal _baseCosts;
-    Quantity[] internal _costRates;
+    IResource[] internal _costsResources;
+    uint256[] internal _costsBase;
+    uint256[] internal _costsRates;
 
     constructor(
         ISanctis sanctis,
         uint256 delay,
-        Quantity[] memory baseCosts,
-        Quantity[] memory costRates
+        IResource[] memory costResources,
+        uint256[] memory costsBase,
+        uint256[] memory costsRates
     ) SanctisModule(sanctis) {
         _upgradeDelay = delay;
 
         uint256 i;
-        for (; i < baseCosts.length; ++i) {
-            _baseCosts.push(baseCosts[i]);
-            _costRates.push(costRates[i]);
+        for (; i < costsBase.length; ++i) {
+            _costsResources.push(costResources[i]);
+            _costsBase.push(costsBase[i]);
+            _costsRates.push(costsRates[i]);
         }
     }
 
@@ -56,9 +58,9 @@ contract Infrastructure is IInfrastructure, SanctisModule {
             lastUpgrade: 0
         });
 
-        Quantity[] memory costs = _baseCosts;
+        uint256[] memory costs = _costsBase;
         for (uint256 i = 0; i < costs.length; i++) {
-            costs[i].resource.burn(planetId, costs[i].quantity);
+            _costsResources[i].burn(planetId, costs[i]);
         }
     }
 
@@ -72,11 +74,11 @@ contract Infrastructure is IInfrastructure, SanctisModule {
         _infrastructures[planetId].level += 1;
         _infrastructures[planetId].lastUpgrade = block.number;
 
-        for (uint256 i = 0; i < _baseCosts.length; i++) {
-            _baseCosts[i].resource.burn(
+        for (uint256 i = 0; i < _costsBase.length; i++) {
+            _costsResources[i].burn(
                 planetId,
-                _baseCosts[i].quantity +
-                    _costRates[i].quantity *
+                _costsBase[i] +
+                    _costsRates[i] *
                     _infrastructures[planetId].level
             );
         }
@@ -89,28 +91,28 @@ contract Infrastructure is IInfrastructure, SanctisModule {
     function costsNextLevel(uint256 planetId)
         external
         view
-        returns (Quantity[] memory)
+        returns (IResource[] memory, uint256[] memory)
     {
-        return _costsAtLevel(_infrastructures[planetId].level);
+        return (_costsResources, _costsAtLevel(_infrastructures[planetId].level));
     }
 
     /* ========== Helpers ========== */
     function _costsAtLevel(uint256 currentLevel)
         internal
         view
-        returns (Quantity[] memory)
+        returns (uint256[] memory)
     {
-        Quantity[] memory costs = _baseCosts;
-        Quantity[] memory lastCosts = currentLevel == 0
-            ? new Quantity[](costs.length)
+        uint256[] memory costs = _costsBase;
+        uint256[] memory lastCosts = currentLevel == 0
+            ? new uint256[](costs.length)
             : _costsAtLevel(currentLevel - 1);
 
         uint256 j;
         for (; j < costs.length; ++j) {
-            costs[j].quantity +=
+            costs[j] +=
                 currentLevel *
-                _costRates[j].quantity +
-                lastCosts[0].quantity;
+                _costsRates[j] +
+                lastCosts[0];
         }
 
         return costs;

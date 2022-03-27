@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "./Quantity.sol";
 import "./IResource.sol";
 
 interface IInfrastructure {
@@ -13,7 +12,7 @@ interface IInfrastructure {
 
     function level(uint256 planetId) external view returns (uint256);
 
-    function costsNextLevel(uint256 planetId) external view returns (Quantity[] memory);
+    function costsNextLevel(uint256 planetId) external view returns (IResource[] memory, uint256[] memory);
 
     function create(uint256 planetId) external;
 

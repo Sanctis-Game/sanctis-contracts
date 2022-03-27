@@ -5,7 +5,6 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/Quantity.sol";
 import "../interfaces/ISanctis.sol";
 import "../interfaces/ICommanders.sol";
 import "../interfaces/IPlanets.sol";
@@ -17,9 +16,10 @@ contract Spatioports is Infrastructure, ISpatioports {
     constructor(
         ISanctis sanctis,
         uint256 delay,
-        Quantity[] memory baseCosts,
-        Quantity[] memory costRates
-    ) Infrastructure(sanctis, delay, baseCosts, costRates) {}
+        IResource[] memory costsResources,
+        uint256[] memory costsBase,
+        uint256[] memory costsRates
+    ) Infrastructure(sanctis, delay, costsResources, costsBase, costsRates) {}
 
     /* ========== Spatioport interfaces ========== */
     function build(
@@ -42,6 +42,7 @@ contract Spatioports is Infrastructure, ISpatioports {
         return
             Spatioport({
                 level: _infrastructures[planetId].level,
+                costsResources: _costsResources,
                 nextCosts: _costsAtLevel(_infrastructures[planetId].level),
                 nextUpgrade: _infrastructures[planetId].lastUpgrade
             });

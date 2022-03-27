@@ -3,24 +3,19 @@ pragma solidity 0.8.10;
 
 import "./IInfrastructure.sol";
 import "./IResource.sol";
-import "./IShip.sol";
 
-interface ISpatioports is IInfrastructure {
-    struct Spatioport {
+interface IPowerPlants is IInfrastructure {
+    struct PowerPlant {
         uint256 level;
+        IResource energy;
+        uint256 production;
         IResource[] costsResources;
         uint256[] nextCosts;
         uint256 nextUpgrade;
     }
 
-    function build(
-        uint256 planetId,
-        IShip fleet,
-        uint256 amount
-    ) external;
-
-    function spatioport(uint256 planetId)
+    function powerPlant(uint256 planetId)
         external
         view
-        returns (Spatioport memory);
+        returns (PowerPlant memory);
 }
