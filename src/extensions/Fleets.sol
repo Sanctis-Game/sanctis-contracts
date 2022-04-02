@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
-import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
-import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
 
 import "./IFleets.sol";
 import "./IPlanets.sol";
@@ -12,6 +10,8 @@ import "../ships/IShip.sol";
 import "../SanctisExtension.sol";
 
 contract Fleets is IFleets, SanctisExtension {
+    using EnumerableSet for EnumerableSet.UintSet;
+
     /* ========== Sanctis extensions used ========== */
     bytes32 constant COMMANDERS = bytes32("COMMANDERS");
     bytes32 constant PLANETS = bytes32("PLANETS");
@@ -29,6 +29,7 @@ contract Fleets is IFleets, SanctisExtension {
     uint256 constant FLEET_STATUS_DESTROYED = 3;
 
     mapping(uint256 => Fleet) internal _fleets;
+    mapping(uint256 => EnumerableSet.UintSet) internal _fleetsOnPlanet;
     mapping(uint256 => uint256) internal _planetOffensivePower;
     mapping(uint256 => uint256) internal _planetDefensivePower;
     mapping(IResource => mapping(uint256 => uint256)) internal _stockPerFleet;
@@ -66,6 +67,18 @@ contract Fleets is IFleets, SanctisExtension {
         return _shipsPerFleet[address(ship)][fleetId];
     }
 
+    function fleetsOnPlanet(uint256 planetId) external view returns (uint256) {
+        return _fleetsOnPlanet[planetId].length();
+    }
+
+    function fleetOnPlanetByIndex(uint256 planetId, uint256 index)
+        external
+        view
+        returns (uint256)
+    {
+        return _fleetsOnPlanet[planetId].at(index);
+    }
+
     function resourceInFleet(IResource resource, uint256 fleetId)
         external
         view
@@ -100,6 +113,7 @@ contract Fleets is IFleets, SanctisExtension {
         targetFleet.arrivalBlock = 0;
         targetFleet.status = FLEET_STATUS_PREPARING;
         _fleets[fleetId] = targetFleet;
+        _fleetsOnPlanet[planetId].add(fleetId);
     }
 
     function addToFleet(
@@ -232,6 +246,7 @@ contract Fleets is IFleets, SanctisExtension {
             (targetFleet.totalSpeed / targetFleet.ships);
 
         _fleets[fleetId] = targetFleet;
+        _fleetsOnPlanet[targetFleet.fromPlanetId].remove(fleetId);
     }
 
     function settleFleet(uint256 fleetId) external {
@@ -246,6 +261,7 @@ contract Fleets is IFleets, SanctisExtension {
         targetFleet.fromPlanetId = targetFleet.toPlanetId;
 
         _fleets[fleetId] = targetFleet;
+        _fleetsOnPlanet[targetFleet.fromPlanetId].add(fleetId);
     }
 
     function load(

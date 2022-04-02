@@ -6,6 +6,10 @@ import "../ISanctisModule.sol";
 interface IResource is ISanctisModule {
     error Unallowed(address sender);
 
+    event Mint(uint256 planet, uint256 amount);
+
+    event Burn(uint256 planet, uint256 amount);
+
     function name() external view returns (string memory);
 
     function symbol() external view returns (string memory);

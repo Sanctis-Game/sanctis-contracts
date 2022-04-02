@@ -36,6 +36,13 @@ interface IFleets is ISanctisExtension {
         view
         returns (uint256);
 
+    function fleetsOnPlanet(uint256 planetId) external view returns (uint256);
+
+    function fleetOnPlanetByIndex(uint256 planetId, uint256 index)
+        external
+        view
+        returns (uint256);
+
     function resourceInFleet(IResource resource, uint256 fleetId)
         external
         view

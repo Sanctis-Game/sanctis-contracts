@@ -30,7 +30,7 @@ interface CheatCodes {
     function assume(bool) external;
 }
 
-contract PowerPlantsTest is DSTest {
+contract InfrastructuresTest is DSTest {
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
 
     Sanctis sanctis;
@@ -67,49 +67,48 @@ contract PowerPlantsTest is DSTest {
         commanders.create("Tester", humans);
         commanderId = 0;
         planets.colonize(commanderId, homeworld);
-        iron.mint(homeworld, 10**27);
     }
 
-    function testCreateUpgradePowerPlants(
+    function testCreateUpgradeInfrastructure(
+        uint256 startingLevel,
         uint256 delay,
-        uint256 rewardBase,
-        uint256 rewardRate,
+        uint256 costBase,
         uint256 costRate
     ) public {
-        cheats.assume(delay < 10**18);
-        cheats.assume(rewardBase > 0 && rewardBase < 10**40);
-        cheats.assume(rewardRate > 0 && rewardRate < 10**40);
-        cheats.assume(costRate > 0 && costRate < rewardBase);
+        cheats.assume(startingLevel < 10**4);
+        cheats.assume(delay < 10**9);
+        cheats.assume(costBase > 0 && costBase < 10**40);
+        cheats.assume(costRate > 0 && costRate < 10**40);
 
-        IResource[] memory powerPlantsCostsResources = new IResource[](1);
-        powerPlantsCostsResources[0] = iron;
-        uint256[] memory powerPlantsCostsBase = new uint256[](1);
-        powerPlantsCostsBase[0] = 0;
-        uint256[] memory powerPlantsCostsRates = new uint256[](1);
-        powerPlantsCostsRates[0] = costRate;
-        PowerPlants powerPlants = new PowerPlants(
+        IResource[] memory infrastructureCostsResources = new IResource[](1);
+        infrastructureCostsResources[0] = iron;
+        uint256[] memory infrastructureCostsBase = new uint256[](1);
+        infrastructureCostsBase[0] = costBase;
+        uint256[] memory infrastructureCostsRates = new uint256[](1);
+        infrastructureCostsRates[0] = costRate;
+        Infrastructure infrastructure = new Infrastructure(
             sanctis,
-            energy,
-            rewardBase,
-            rewardRate,
             delay,
-            powerPlantsCostsResources,
-            powerPlantsCostsBase,
-            powerPlantsCostsRates
+            infrastructureCostsResources,
+            infrastructureCostsBase,
+            infrastructureCostsRates
         );
-        sanctis.setAllowed(address(powerPlants), true);
 
-        powerPlants.create(homeworld);
+        sanctis.setAllowed(address(infrastructure), true);
+        iron.mint(homeworld, 2**223);
 
-        uint256 blocksToWait = costRate / (rewardRate + rewardRate) + 1;
-        blocksToWait = blocksToWait > delay ? blocksToWait : delay;
-        cheats.roll(block.number + blocksToWait);
+        uint256 reserveBefore = iron.reserve(homeworld);
+        infrastructure.create(homeworld);
+        assertEq(iron.reserve(homeworld), reserveBefore - costBase);
 
-        uint256 reserveBefore = energy.reserve(homeworld);
-        powerPlants.upgrade(homeworld);
-        assertEq(
-            energy.reserve(homeworld),
-            reserveBefore + rewardBase + rewardRate
-        );
+        for (uint256 i; i < startingLevel; i++) {
+            cheats.roll(block.number + delay * (i + 1));
+            reserveBefore = iron.reserve(homeworld);
+            (, uint256[] memory pastCosts) = infrastructure.costsNextLevel(
+                homeworld
+            );
+            infrastructure.upgrade(homeworld);
+            assertEq(iron.reserve(homeworld), reserveBefore - pastCosts[0]);
+        }
     }
 }

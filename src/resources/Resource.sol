@@ -17,7 +17,11 @@ contract Resource is SanctisModule, IResource {
     string internal _name;
     string internal _symbol;
 
-    constructor(ISanctis sanctis_, string memory name_, string memory symbol_) SanctisModule(sanctis_) {
+    constructor(
+        ISanctis sanctis_,
+        string memory name_,
+        string memory symbol_
+    ) SanctisModule(sanctis_) {
         _name = name_;
         _symbol = symbol_;
     }
@@ -36,18 +40,22 @@ contract Resource is SanctisModule, IResource {
      * This is useful for resource transportation and consumption for building.
      * @dev Cannot be called by an unregistered operator.
      */
-    function mint(
-        uint256 planetId,
-        uint256 amount
-    ) virtual external onlyAllowed {
+    function mint(uint256 planetId, uint256 amount)
+        external
+        virtual
+        onlyAllowed
+    {
         _reserves[planetId] += amount;
+        emit Mint(planetId, amount);
     }
 
-    function burn(
-        uint256 planetId,
-        uint256 amount
-    ) virtual external onlyAllowed {
+    function burn(uint256 planetId, uint256 amount)
+        external
+        virtual
+        onlyAllowed
+    {
         _reserves[planetId] -= amount;
+        emit Burn(planetId, amount);
     }
 
     /// @dev Overload this function to affect rarity of the resource
