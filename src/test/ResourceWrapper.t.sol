@@ -59,7 +59,7 @@ contract ResourceWrapperTest is DSTest {
         credits = new SpaceCredits(sanctis);
         commanders = new Commanders(sanctis);
         planets = new Planets(sanctis, COLONIZATION_COST);
-        fleets = new Fleets(sanctis, PLUNDER_PERIOD, PLUNDER_RATE);
+        fleets = new Fleets(sanctis);
         wrapper = new ResourceWrapper(sanctis);
 
         sanctis.setParliamentExecutor(address(this));
@@ -79,7 +79,8 @@ contract ResourceWrapperTest is DSTest {
             EXTRACTORS_DELAY,
             new IResource[](0),
             new uint256[](0),
-            new uint256[](0)
+            new uint256[](0),
+            9900
         );
 
         uint256 transportersDefensivePower = 100;

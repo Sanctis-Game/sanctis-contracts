@@ -14,6 +14,8 @@ interface IFleets is ISanctisExtension {
     error EmptyFleet(uint256 fleetId);
     error NotArrivedYet(uint256 fleetId);
 
+    event Moved(uint256 fleet, uint256 from, uint256 to);
+
     struct Fleet {
         uint256 commander;
         uint256 fromPlanetId;
