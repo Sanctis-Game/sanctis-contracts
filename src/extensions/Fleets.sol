@@ -5,19 +5,29 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/ISanctis.sol";
-import "../interfaces/ICommanders.sol";
-import "../interfaces/IPlanets.sol";
-import "../interfaces/IFleets.sol";
-import "../interfaces/IShip.sol";
+import "./IFleets.sol";
+import "./IPlanets.sol";
+import "./ICommanders.sol";
+import "../ships/IShip.sol";
 import "../SanctisExtension.sol";
 
 contract Fleets is IFleets, SanctisExtension {
     /* ========== Sanctis extensions used ========== */
-    string constant COMMANDERS = "COMMANDERS";
-    string constant PLANETS = "PLANETS";
+    bytes32 constant COMMANDERS = bytes32("COMMANDERS");
+    bytes32 constant PLANETS = bytes32("PLANETS");
+    bytes32 constant FLEETS = bytes32("FLEETS");
 
     /* ========== Contract variables ========== */
+    uint8 constant PLANET_STATUS_UNKNOWN = 0;
+    uint8 constant PLANET_STATUS_UNCHARTED = 1;
+    uint8 constant PLANET_STATUS_COLONIZED = 2;
+    uint8 constant PLANET_STATUS_SANCTIS = 3;
+
+    uint256 constant FLEET_STATUS_PREPARING = 0;
+    uint256 constant FLEET_STATUS_ORBITING = 1;
+    uint256 constant FLEET_STATUS_TRAVELLING = 2;
+    uint256 constant FLEET_STATUS_DESTROYED = 3;
+
     mapping(uint256 => Fleet) internal _fleets;
     mapping(uint256 => uint256) internal _planetOffensivePower;
     mapping(uint256 => uint256) internal _planetDefensivePower;
@@ -31,7 +41,7 @@ contract Fleets is IFleets, SanctisExtension {
         ISanctis newSanctis,
         uint256 plunderPeriod_,
         uint256 plunderRate_
-    ) SanctisExtension("FLEETS", newSanctis) {
+    ) SanctisExtension(FLEETS, newSanctis) {
         _plunderPeriod = plunderPeriod_;
         _plunderRate = plunderRate_;
     }
@@ -41,12 +51,27 @@ contract Fleets is IFleets, SanctisExtension {
         return _fleets[fleetId];
     }
 
+    function planet(uint256 planetId) external view returns (uint256, uint256) {
+        return (
+            _planetOffensivePower[planetId],
+            _planetDefensivePower[planetId]
+        );
+    }
+
     function shipsInFleet(IShip ship, uint256 fleetId)
         external
         view
         returns (uint256)
     {
         return _shipsPerFleet[address(ship)][fleetId];
+    }
+
+    function resourceInFleet(IResource resource, uint256 fleetId)
+        external
+        view
+        returns (uint256)
+    {
+        return _stockPerFleet[resource][fleetId];
     }
 
     function createFleet(
@@ -60,7 +85,7 @@ contract Fleets is IFleets, SanctisExtension {
             revert AlreadyExists({fleetId: fleetId});
 
         if (
-            IPlanets(sanctis.extension(PLANETS)).planet(planetId).ruler !=
+            IPlanets(s_sanctis.extension(PLANETS)).planet(planetId).ruler !=
             commanderId
         ) revert NotRuler({commanderId: commanderId, planetId: planetId});
 
@@ -73,7 +98,7 @@ contract Fleets is IFleets, SanctisExtension {
         targetFleet.capacity = 0;
         targetFleet.ships = 0;
         targetFleet.arrivalBlock = 0;
-        targetFleet.status = FleetStatus.Preparing;
+        targetFleet.status = FLEET_STATUS_PREPARING;
         _fleets[fleetId] = targetFleet;
     }
 
@@ -86,7 +111,7 @@ contract Fleets is IFleets, SanctisExtension {
 
         _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
         _assertIsOnRuledPlanet(fleetId);
-        if (targetFleet.status != FleetStatus.Preparing)
+        if (targetFleet.status != FLEET_STATUS_PREPARING)
             revert InvalidFleetStatus({
                 fleetId: fleetId,
                 status: targetFleet.status
@@ -118,7 +143,7 @@ contract Fleets is IFleets, SanctisExtension {
 
         _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
         _assertIsOnRuledPlanet(fleetId);
-        if (targetFleet.status != FleetStatus.Preparing)
+        if (targetFleet.status != FLEET_STATUS_PREPARING)
             revert InvalidFleetStatus({
                 fleetId: fleetId,
                 status: targetFleet.status
@@ -146,14 +171,14 @@ contract Fleets is IFleets, SanctisExtension {
 
         _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
         _assertIsOnRuledPlanet(fleetId);
-        if (targetFleet.status != FleetStatus.Preparing)
+        if (targetFleet.status != FLEET_STATUS_PREPARING)
             revert InvalidFleetStatus({
                 fleetId: fleetId,
                 status: targetFleet.status
             });
         if (targetFleet.ships == 0) revert EmptyFleet({fleetId: fleetId});
 
-        targetFleet.status = FleetStatus.Orbiting;
+        targetFleet.status = FLEET_STATUS_ORBITING;
         _fleets[fleetId] = targetFleet;
         _planetOffensivePower[targetFleet.fromPlanetId] -= targetFleet
             .totalOffensivePower;
@@ -166,13 +191,13 @@ contract Fleets is IFleets, SanctisExtension {
 
         _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
         _assertIsOnRuledPlanet(fleetId);
-        if (targetFleet.status != FleetStatus.Orbiting)
+        if (targetFleet.status != FLEET_STATUS_ORBITING)
             revert InvalidFleetStatus({
                 fleetId: fleetId,
                 status: targetFleet.status
             });
 
-        targetFleet.status = FleetStatus.Preparing;
+        targetFleet.status = FLEET_STATUS_PREPARING;
         _fleets[fleetId] = targetFleet;
         _planetOffensivePower[targetFleet.fromPlanetId] += targetFleet
             .totalOffensivePower;
@@ -184,23 +209,23 @@ contract Fleets is IFleets, SanctisExtension {
         Fleet memory targetFleet = _fleets[fleetId];
 
         _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
-        if (targetFleet.status != FleetStatus.Orbiting)
+        if (targetFleet.status != FLEET_STATUS_ORBITING)
             revert InvalidFleetStatus({
                 fleetId: fleetId,
                 status: targetFleet.status
             });
 
         IPlanets.Planet memory targetPlanet = IPlanets(
-            sanctis.extension(PLANETS)
+            s_sanctis.extension(PLANETS)
         ).planet(toPlanetId);
-        if (targetPlanet.status == IPlanets.PlanetStatus.Unknown)
+        if (targetPlanet.status == PLANET_STATUS_UNKNOWN)
             revert IPlanets.InvalidPlanet({planet: toPlanetId});
 
-        targetFleet.status = FleetStatus.Travelling;
+        targetFleet.status = FLEET_STATUS_TRAVELLING;
         targetFleet.toPlanetId = toPlanetId;
         targetFleet.arrivalBlock =
             block.number +
-            IPlanets(sanctis.extension(PLANETS)).distance(
+            IPlanets(s_sanctis.extension(PLANETS)).distance(
                 targetFleet.fromPlanetId,
                 toPlanetId
             ) /
@@ -213,11 +238,11 @@ contract Fleets is IFleets, SanctisExtension {
         Fleet memory targetFleet = _fleets[fleetId];
 
         if (
-            targetFleet.status != FleetStatus.Travelling &&
+            targetFleet.status != FLEET_STATUS_TRAVELLING &&
             targetFleet.arrivalBlock > block.number
         ) revert NotArrivedYet({fleetId: fleetId});
 
-        targetFleet.status = FleetStatus.Orbiting;
+        targetFleet.status = FLEET_STATUS_ORBITING;
         targetFleet.fromPlanetId = targetFleet.toPlanetId;
 
         _fleets[fleetId] = targetFleet;
@@ -231,19 +256,15 @@ contract Fleets is IFleets, SanctisExtension {
         _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
         _assertIsOnRuledPlanet(fleetId);
         if (
-            _fleets[fleetId].status != FleetStatus.Preparing &&
-            _fleets[fleetId].status != FleetStatus.Orbiting
+            _fleets[fleetId].status != FLEET_STATUS_PREPARING &&
+            _fleets[fleetId].status != FLEET_STATUS_ORBITING
         )
             revert InvalidFleetStatus({
                 fleetId: fleetId,
                 status: _fleets[fleetId].status
             });
-        if (_fleets[fleetId].capacity < amount)
-            revert NotEnoughCapacity({
-                fleetId: fleetId,
-                capacity: _fleets[fleetId].capacity
-            });
 
+        _fleets[fleetId].capacity -= amount;
         _stockPerFleet[resource][fleetId] += amount;
         resource.burn(_fleets[fleetId].fromPlanetId, amount);
     }
@@ -255,88 +276,37 @@ contract Fleets is IFleets, SanctisExtension {
     ) external {
         _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
         if (
-            _fleets[fleetId].status != FleetStatus.Preparing &&
-            _fleets[fleetId].status != FleetStatus.Orbiting
+            _fleets[fleetId].status != FLEET_STATUS_PREPARING &&
+            _fleets[fleetId].status != FLEET_STATUS_ORBITING
         )
             revert InvalidFleetStatus({
                 fleetId: fleetId,
                 status: _fleets[fleetId].status
             });
-        if (_stockPerFleet[resource][fleetId] < amount)
-            revert NotEnoughCapacity({
-                fleetId: fleetId,
-                capacity: _stockPerFleet[resource][fleetId]
-            });
 
+        _fleets[fleetId].capacity += amount;
         _stockPerFleet[resource][fleetId] -= amount;
         resource.mint(_fleets[fleetId].fromPlanetId, amount);
     }
 
-    function plunder(uint256 fleetId, IResource resource) external {
-        Fleet memory targetFleet = _fleets[fleetId];
-
-        _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
-        if (targetFleet.status != FleetStatus.Orbiting)
-            revert InvalidFleetStatus({
-                fleetId: fleetId,
-                status: targetFleet.status
-            });
-
-        IPlanets.Planet memory targetPlanet = IPlanets(
-            sanctis.extension(PLANETS)
-        ).planet(targetFleet.fromPlanetId);
-        if (targetPlanet.status != IPlanets.PlanetStatus.Colonized)
-            revert IPlanets.InvalidPlanet({planet: targetFleet.fromPlanetId});
-        if (
-            _lastPlundering[targetFleet.fromPlanetId] + _plunderPeriod >
-            block.number
-        ) revert PlunderingTooEarly({planetId: targetFleet.fromPlanetId});
-        if (
-            targetFleet.totalOffensivePower <=
-            _planetOffensivePower[targetFleet.fromPlanetId]
-        ) revert FleetTooWeak({fleetId: fleetId});
-
-        _lastPlundering[targetFleet.fromPlanetId] = block.number;
-        uint256 plunderAmount = (resource.reserve(targetFleet.fromPlanetId) *
-            _plunderRate) / 10000;
-        uint256 loadable = plunderAmount >= targetFleet.capacity
-            ? targetFleet.capacity
-            : plunderAmount;
-        _fleets[fleetId].capacity -= loadable;
-        _stockPerFleet[resource][fleetId] += loadable;
-        resource.burn(targetFleet.fromPlanetId, plunderAmount);
+    function allowedLoad(
+        uint256 fleetId,
+        IResource resource,
+        uint256 amount
+    ) external onlyAllowed {
+        _fleets[fleetId].capacity -= amount;
+        _stockPerFleet[resource][fleetId] += amount;
+        resource.burn(_fleets[fleetId].fromPlanetId, amount);
     }
 
-    function defendPlanet(uint256 planetId, uint256 fleetId) external {
-        _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
-        if (
-            _planetOffensivePower[planetId] <
-            _fleets[fleetId].totalDefensivePower
-        )
-            revert PlanetTooWeak({
-                planetId: planetId,
-                received: _planetOffensivePower[planetId],
-                required: _fleets[fleetId].totalDefensivePower
-            });
-        if (_fleets[fleetId].status != FleetStatus.Orbiting)
-            revert InvalidFleetStatus({
-                fleetId: fleetId,
-                status: _fleets[fleetId].status
-            });
-
-        _fleets[fleetId].status = FleetStatus.Destroyed;
-    }
-
-    function plunderPeriod() external view returns (uint256) {
-        return _plunderPeriod;
-    }
-
-    function plunderRate() external view returns (uint256) {
-        return _plunderRate;
-    }
-
-    function nextPlundering(uint256 planetId) external view returns (uint256) {
-        return _lastPlundering[planetId] + _plunderPeriod;
+    function allowedUnload(
+        uint256 fleetId,
+        IResource resource,
+        uint256 amount
+    ) external onlyAllowed {
+        _fleets[fleetId].capacity += amount;
+        _stockPerFleet[resource][fleetId] -= amount;
+        resource.mint(_fleets[fleetId].fromPlanetId, amount);
     }
 
     function setFleet(uint256 fleetId, Fleet memory newFleet)
@@ -361,7 +331,7 @@ contract Fleets is IFleets, SanctisExtension {
         view
     {
         if (
-            !ICommanders(sanctis.extension(COMMANDERS)).isApproved(
+            !ICommanders(s_sanctis.extension(COMMANDERS)).isApproved(
                 caller,
                 commanderId
             )
@@ -371,7 +341,7 @@ contract Fleets is IFleets, SanctisExtension {
     /// @notice Asserts that the planet the fleet is on is controlled by the fleet controller
     function _assertIsOnRuledPlanet(uint256 fleetId) internal view {
         if (
-            IPlanets(sanctis.extension(PLANETS))
+            IPlanets(s_sanctis.extension(PLANETS))
                 .planet(_fleets[fleetId].fromPlanetId)
                 .ruler != _fleets[fleetId].commander
         )

@@ -6,7 +6,7 @@ import "openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockC
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 import "../Sanctis.sol";
-import "../interfaces/ISpaceCredits.sol";
+import "../extensions/ISpaceCredits.sol";
 import "../extensions/SpaceCredits.sol";
 import "../extensions/Commanders.sol";
 import "../extensions/Planets.sol";
@@ -52,9 +52,7 @@ contract PlanetsTest is DSTest {
     }
 
     function testCreatePlanet(uint256 homeworld) public {
-        cheats.assume(
-            homeworld != 0 && homeworld < type(uint240).max
-        );
+        cheats.assume(homeworld != 0 && homeworld < type(uint240).max);
 
         commanders.create("T", humans);
         planets.create(homeworld);
@@ -71,6 +69,6 @@ contract PlanetsTest is DSTest {
         credits.mint(address(this), cost);
         commanders.create("T", humans);
         credits.approve(address(planets), cost);
-        planets.colonize(commanders.created(), homeworld);
+        planets.colonize(0, homeworld);
     }
 }

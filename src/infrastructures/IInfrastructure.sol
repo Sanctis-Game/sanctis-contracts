@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "./IResource.sol";
+import "../ISanctisModule.sol";
+import "../resources/IResource.sol";
 
-interface IInfrastructure {
+interface IInfrastructure is ISanctisModule {
     error ResourceNotOnPlanet(uint256 planetId, IResource resource);
     error PlanetNotOwned(uint256 planetId);
     error NotEnoughResource(uint256 planetId, IResource resource);
@@ -12,7 +13,10 @@ interface IInfrastructure {
 
     function level(uint256 planetId) external view returns (uint256);
 
-    function costsNextLevel(uint256 planetId) external view returns (IResource[] memory, uint256[] memory);
+    function costsNextLevel(uint256 planetId)
+        external
+        view
+        returns (IResource[] memory, uint256[] memory);
 
     function create(uint256 planetId) external;
 

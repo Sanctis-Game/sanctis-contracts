@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "../interfaces/ISanctis.sol";
 import "./Resource.sol";
 
 contract Energy is Resource {
-    constructor(ISanctis sanctis) Resource(sanctis, "Energy", "NRG") {}
+    constructor(ISanctis _sanctis) Resource(_sanctis, "Energy", "NRG") {}
 
     function mint(uint256 planetId, uint256 amount)
         external
@@ -20,7 +19,7 @@ contract Energy is Resource {
         override
         onlyAllowed
     {
-        require(msg.sender != sanctis.extension("FLEETS"), "Non transferrable through fleets");
+        require(msg.sender != s_sanctis.extension("FLEETS"), "No fleet transfer");
         _reserves[planetId] -= amount;
     }
 }

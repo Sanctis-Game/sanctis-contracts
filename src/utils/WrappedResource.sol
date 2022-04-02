@@ -4,7 +4,7 @@ pragma solidity 0.8.10;
 import "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-import "../interfaces/IResource.sol";
+import "../resources/IResource.sol";
 
 contract WrappedResource is ERC20, Ownable {
     constructor(IResource resource, uint256 planetId)

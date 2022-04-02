@@ -5,13 +5,10 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/ISanctis.sol";
-import "../interfaces/ICommanders.sol";
-import "../interfaces/IPlanets.sol";
-import "../interfaces/IFleets.sol";
 import "../SanctisModule.sol";
+import "./IShip.sol";
 
-contract Ship is IShip, SanctisModule {
+contract Ship is SanctisModule, IShip {
     /// @notice Amount of ships on a given planet
     mapping(uint256 => uint256) internal _reserves;
     /// @notice Amount of ship in a given fleet
@@ -62,7 +59,11 @@ contract Ship is IShip, SanctisModule {
         return _capacity;
     }
 
-    function unitCosts() external view returns (IResource[] memory, uint256[] memory) {
+    function unitCosts()
+        external
+        view
+        returns (IResource[] memory, uint256[] memory)
+    {
         return (_costsResources, _unitCosts);
     }
 
@@ -74,10 +75,7 @@ contract Ship is IShip, SanctisModule {
         // Pay the unit
         uint256 i;
         for (; i < _unitCosts.length; ++i) {
-            _costsResources[i].burn(
-                planetId,
-                _unitCosts[i] * amount
-            );
+            _costsResources[i].burn(planetId, _unitCosts[i] * amount);
         }
 
         mint(planetId, amount);

@@ -3,7 +3,7 @@ pragma solidity 0.8.10;
 
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-import "./interfaces/ISanctis.sol";
+import "./ISanctis.sol";
 import "./Parliament.sol";
 
 /// @title The Sanctis, heart of the galaxy
@@ -16,18 +16,21 @@ contract Sanctis is ISanctis, Ownable {
 
     // Metagame
     mapping(address => bool) internal _allowed;
-    mapping(string => address) internal _extensions;
+    mapping(bytes32 => address) internal _extensions;
 
     /* ========== GOVERNANCE ========== */
     function parliamentExecutor() external view returns (address) {
         return _parliamentExecutor;
     }
 
-    function setParliamentExecutor(address newParliamentExecutor) external onlyOwner {
+    function setParliamentExecutor(address newParliamentExecutor)
+        external
+        onlyOwner
+    {
         _parliamentExecutor = newParliamentExecutor;
         transferOwnership(newParliamentExecutor);
     }
-    
+
     /* ========== MODULES ========== */
     function allowed(address object) external view returns (bool) {
         return _allowed[object];
@@ -38,11 +41,14 @@ contract Sanctis is ISanctis, Ownable {
     }
 
     /* ========== EXTENSIONS ========== */
-    function extension(string memory key) external view returns (address) {
+    function extension(bytes32 key) external view returns (address) {
         return _extensions[key];
     }
 
-    function insertAndAllowExtension(ISanctisExtension object) external onlyOwner {
+    function insertAndAllowExtension(ISanctisExtension object)
+        external
+        onlyOwner
+    {
         _allowed[address(object)] = true;
         _extensions[object.key()] = address(object);
     }
@@ -51,7 +57,10 @@ contract Sanctis is ISanctis, Ownable {
         _extensions[object.key()] = address(object);
     }
 
-    function ejectAndDisallowExtension(ISanctisExtension object) external onlyOwner {
+    function ejectAndDisallowExtension(ISanctisExtension object)
+        external
+        onlyOwner
+    {
         _allowed[address(object)] = false;
         _extensions[object.key()] = address(0);
     }

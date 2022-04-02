@@ -1,28 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "./ISanctis.sol";
-import "./IShip.sol";
+import "../ISanctisExtension.sol";
+import "../ships/IShip.sol";
 
-interface IFleets {
+interface IFleets is ISanctisExtension {
     error NotCommanderOwner(uint256 commanderId);
     error NotRuler(uint256 commanderId, uint256 planetId);
-    error InvalidFleetStatus(uint256 fleetId, FleetStatus status);
+    error InvalidFleetStatus(uint256 fleetId, uint256 status);
     error NotEnoughCapacity(uint256 fleetId, uint256 capacity);
-    error PlunderingTooEarly(uint256 planetId);
-    error FleetTooWeak(uint256 fleetId);
-    error PlanetTooWeak(uint256 planetId, uint256 received, uint256 required);
     error AlreadyExists(uint256 fleetId);
     error AlreadyMoving(uint256 fleetId);
     error EmptyFleet(uint256 fleetId);
     error NotArrivedYet(uint256 fleetId);
-
-    enum FleetStatus {
-        Preparing,
-        Orbiting,
-        Travelling,
-        Destroyed
-    }
 
     struct Fleet {
         uint256 commander;
@@ -34,12 +24,19 @@ interface IFleets {
         uint256 capacity;
         uint256 ships;
         uint256 arrivalBlock;
-        FleetStatus status;
+        uint256 status;
     }
 
     function fleet(uint256 fleetId) external view returns (Fleet memory);
 
+    function planet(uint256 planetId) external view returns (uint256, uint256);
+
     function shipsInFleet(IShip ship, uint256 fleetId)
+        external
+        view
+        returns (uint256);
+
+    function resourceInFleet(IResource resource, uint256 fleetId)
         external
         view
         returns (uint256);
@@ -62,6 +59,10 @@ interface IFleets {
         uint256 amount
     ) external;
 
+    function putInOrbit(uint256 fleetId) external;
+
+    function land(uint256 fleetId) external;
+
     function moveFleet(uint256 fleetId, uint256 toPlanetId) external;
 
     function settleFleet(uint256 fleetId) external;
@@ -78,15 +79,17 @@ interface IFleets {
         uint256 amount
     ) external;
 
-    function plunder(uint256 fleetId, IResource resource) external;
+    function allowedLoad(
+        uint256 fleetId,
+        IResource resource,
+        uint256 amount
+    ) external;
 
-    function defendPlanet(uint256 planetId, uint256 fleetId) external;
-
-    function plunderPeriod() external view returns (uint256);
-
-    function plunderRate() external view returns (uint256);
-
-    function nextPlundering(uint256 planetId) external view returns (uint256);
+    function allowedUnload(
+        uint256 fleetId,
+        IResource resource,
+        uint256 amount
+    ) external;
 
     function setFleet(uint256 fleetId, Fleet memory newFleet) external;
 }

@@ -5,9 +5,8 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/ISanctis.sol";
-import "../interfaces/IRace.sol";
 import "../SanctisModule.sol";
+import "./IRace.sol";
 
 abstract contract Race is IRace, SanctisModule {
     string internal _name;

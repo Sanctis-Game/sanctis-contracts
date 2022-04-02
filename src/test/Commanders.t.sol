@@ -6,7 +6,8 @@ import "openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockC
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 import "../Sanctis.sol";
-import "../interfaces/ISpaceCredits.sol";
+import "../extensions/ISpaceCredits.sol";
+import "../extensions/ICommanders.sol";
 import "../extensions/SpaceCredits.sol";
 import "../extensions/Commanders.sol";
 import "../extensions/Planets.sol";
@@ -39,18 +40,22 @@ contract CommandersTest is DSTest {
         sanctis.setAllowed(address(humans), true);
     }
 
-    function testCreate() public {
-        commanders.create("Tester", humans);
-        commanders.create("Tester and tests", humans);
-        commanders.create("Testerrrrr", humans);
-        commanders.create("Tester420", humans);
-        commanders.create("Tester 420", humans);
+    function testCreateCommander() public {
+        string[5] memory names = ["a", "b", "zzc", "dqsdfqsdfqs", "chfizqgk"];
+        for (uint256 i = 0; i < names.length; i++) {
+            commanders.create(names[i], humans);
+            Commanders.Commander memory c = commanders.commander(
+                commanders.tokenOfOwnerByIndex(address(this), i)
+            );
+            assertEq(c.name, names[i]);
+            assertEq(address(c.race), address(humans));
+        }
     }
 
     function testFailCreateBadCharacter1() public {
         commanders.create("Tester_ujuj", humans);
     }
-    
+
     function testFailCreateBadCharacter2() public {
         commanders.create("Tester+ujuj", humans);
     }

@@ -5,16 +5,13 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/ISanctis.sol";
-import "../interfaces/ICommanders.sol";
-import "../interfaces/IPlanets.sol";
-import "../interfaces/IResource.sol";
 import "../SanctisModule.sol";
+import "./IResource.sol";
 
 /**
  * Contract defining a base for resource handling
  */
-contract Resource is IResource, SanctisModule {
+contract Resource is SanctisModule, IResource {
     mapping(uint256 => uint256) internal _reserves;
 
     string internal _name;

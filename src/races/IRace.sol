@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-interface IRace {
+import "../ISanctisModule.sol";
+
+interface IRace is ISanctisModule {
     function name() external view returns (string memory);
 }

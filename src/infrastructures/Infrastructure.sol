@@ -5,17 +5,16 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/ISanctis.sol";
-import "../interfaces/ICommanders.sol";
-import "../interfaces/IPlanets.sol";
-import "../interfaces/IResource.sol";
-import "../interfaces/IInfrastructure.sol";
+import "./IInfrastructure.sol";
 import "../SanctisModule.sol";
+import "../extensions/ICommanders.sol";
+import "../extensions/IPlanets.sol";
+import "../resources/IResource.sol";
 
 contract Infrastructure is IInfrastructure, SanctisModule {
     /* ========== Sanctis extensions used ========== */
-    string constant COMMANDERS = "COMMANDERS";
-    string constant PLANETS = "PLANETS";
+    bytes32 constant COMMANDERS = "COMMANDERS";
+    bytes32 constant PLANETS = "PLANETS";
 
     /* ========== Contract variables ========== */
     struct BaseInfrastructure {
@@ -30,12 +29,12 @@ contract Infrastructure is IInfrastructure, SanctisModule {
     uint256[] internal _costsRates;
 
     constructor(
-        ISanctis sanctis,
+        ISanctis _sanctis,
         uint256 delay,
         IResource[] memory costResources,
         uint256[] memory costsBase,
         uint256[] memory costsRates
-    ) SanctisModule(sanctis) {
+    ) SanctisModule(_sanctis) {
         _upgradeDelay = delay;
 
         uint256 i;
@@ -48,14 +47,14 @@ contract Infrastructure is IInfrastructure, SanctisModule {
 
     /* ========== Infrastructure interfaces ========== */
     function create(uint256 planetId) external {
+        require(_infrastructures[planetId].level == 0, "Already exists");
         _isPlanetOwner(msg.sender, planetId);
-        _planetIsUpgradable(planetId);
 
         _beforeCreation(planetId);
 
         _infrastructures[planetId] = BaseInfrastructure({
             level: 1,
-            lastUpgrade: 0
+            lastUpgrade: block.number
         });
 
         uint256[] memory costs = _costsBase;
@@ -74,7 +73,8 @@ contract Infrastructure is IInfrastructure, SanctisModule {
         _infrastructures[planetId].level += 1;
         _infrastructures[planetId].lastUpgrade = block.number;
 
-        for (uint256 i = 0; i < _costsBase.length; i++) {
+        uint256 i;
+        for (; i < _costsBase.length; ++i) {
             _costsResources[i].burn(
                 planetId,
                 _costsBase[i] +
@@ -93,7 +93,10 @@ contract Infrastructure is IInfrastructure, SanctisModule {
         view
         returns (IResource[] memory, uint256[] memory)
     {
-        return (_costsResources, _costsAtLevel(_infrastructures[planetId].level));
+        return (
+            _costsResources,
+            _costsAtLevel(_infrastructures[planetId].level)
+        );
     }
 
     /* ========== Helpers ========== */
@@ -109,13 +112,17 @@ contract Infrastructure is IInfrastructure, SanctisModule {
 
         uint256 j;
         for (; j < costs.length; ++j) {
-            costs[j] +=
-                currentLevel *
-                _costsRates[j] +
-                lastCosts[0];
+            costs[j] += currentLevel * _costsRates[j] + lastCosts[0];
         }
 
         return costs;
+    }
+
+    function _nextUpgrade(uint256 planetId) internal view returns (uint256) {
+        return
+            _infrastructures[planetId].lastUpgrade +
+            _upgradeDelay *
+            _infrastructures[planetId].level;
     }
 
     function _assertInfrastructureExists(uint256 planetId) internal view {
@@ -128,21 +135,15 @@ contract Infrastructure is IInfrastructure, SanctisModule {
 
     function _isPlanetOwner(address operator, uint256 planetId) internal view {
         if (
-            operator !=
-            ICommanders(sanctis.extension(COMMANDERS)).ownerOf(
-                IPlanets(sanctis.extension(PLANETS)).planet(planetId).ruler
-            ) &&
-            ICommanders(sanctis.extension(COMMANDERS)).isApprovedForAll(
+            !ICommanders(s_sanctis.extension(COMMANDERS)).isApproved(
                 operator,
-                address(this)
+                IPlanets(s_sanctis.extension(PLANETS)).planet(planetId).ruler
             )
         ) revert PlanetNotOwned({planetId: planetId});
     }
 
     function _planetIsUpgradable(uint256 planetId) internal view {
-        uint256 soonestUpgrade = _infrastructures[planetId].lastUpgrade +
-            _upgradeDelay *
-            _infrastructures[planetId].level;
+        uint256 soonestUpgrade = _nextUpgrade(planetId);
         if (block.number < soonestUpgrade)
             revert TooSoonToUpgrade({
                 planetId: planetId,

@@ -58,10 +58,7 @@ contract ResourceWrapperTest is DSTest {
 
         credits = new SpaceCredits(sanctis);
         commanders = new Commanders(sanctis);
-        planets = new Planets(
-            sanctis,
-            COLONIZATION_COST
-        );
+        planets = new Planets(sanctis, COLONIZATION_COST);
         fleets = new Fleets(sanctis, PLUNDER_PERIOD, PLUNDER_RATE);
         wrapper = new ResourceWrapper(sanctis);
 
@@ -108,35 +105,38 @@ contract ResourceWrapperTest is DSTest {
         uint256 homeworld = 1020;
         commanders.create("Tester", humans);
         credits.approve(address(planets), COLONIZATION_COST * 2);
-        planets.colonize(commanders.created(), homeworld);
+        planets.colonize(0, homeworld);
         iron.mint(homeworld, 10**27);
         spatioports.create(homeworld);
-        
+
         uint256 fleetId = 20898;
         uint256 transportersCount = 100;
         uint256 wrappedQuantity = 10**18;
-        fleets.createFleet(fleetId, 1, homeworld);
+        fleets.createFleet(fleetId, 0, homeworld);
         spatioports.build(homeworld, transporters, transportersCount);
         fleets.addToFleet(fleetId, transporters, transportersCount);
         fleets.load(fleetId, iron, wrappedQuantity);
 
         commanders.setApprovalForAll(address(wrapper), true);
         wrapper.mintFromFleet(fleetId, iron, wrappedQuantity);
-        assertEq(IERC20(wrapper.getToken(iron, homeworld)).balanceOf(address(this)), wrappedQuantity);
+        assertEq(
+            IERC20(wrapper.getToken(iron, homeworld)).balanceOf(address(this)),
+            wrappedQuantity
+        );
     }
 
     function testBurnToFleet() public {
         uint256 homeworld = 1020;
         commanders.create("Tester", humans);
         credits.approve(address(planets), COLONIZATION_COST * 2);
-        planets.colonize(commanders.created(), homeworld);
+        planets.colonize(0, homeworld);
         iron.mint(homeworld, 10**27);
         spatioports.create(homeworld);
-        
+
         uint256 fleetId = 20898;
         uint256 transportersCount = 100;
         uint256 wrappedQuantity = 10**18;
-        fleets.createFleet(fleetId, 1, homeworld);
+        fleets.createFleet(fleetId, 0, homeworld);
         spatioports.build(homeworld, transporters, transportersCount);
         fleets.addToFleet(fleetId, transporters, transportersCount);
         fleets.load(fleetId, iron, wrappedQuantity);
@@ -144,7 +144,10 @@ contract ResourceWrapperTest is DSTest {
         wrapper.mintFromFleet(fleetId, iron, wrappedQuantity);
 
         wrapper.burnToFleet(fleetId, iron, wrappedQuantity);
-        assertEq(IERC20(wrapper.getToken(iron, homeworld)).balanceOf(address(this)), 0);
+        assertEq(
+            IERC20(wrapper.getToken(iron, homeworld)).balanceOf(address(this)),
+            0
+        );
         assertEq(iron.reserve(homeworld), 10**27 - wrappedQuantity);
     }
 }

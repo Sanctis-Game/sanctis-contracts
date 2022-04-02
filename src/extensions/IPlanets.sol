@@ -1,35 +1,36 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-interface IPlanets {
+import "../ISanctisExtension.sol";
+
+interface IPlanets is ISanctisExtension {
     error InvalidPlanet(uint256 planet);
     error PlanetAlreadyExists(uint256 planet);
-    error PlanetAlreadyColonized(uint256 planet, IPlanets.PlanetStatus status);
+    error PlanetAlreadyColonized(uint256 planet, uint8 status);
     error NotTheOwner(uint256 ruler);
 
-    /// @notice Uncharted planets have never been explored
-    /// @notice Colonized planets have at least settlement
-    enum PlanetStatus {
-        Unknown,
-        Uncharted,
-        Colonized,
-        Sanctis
-    }
+    /// @notice Unknown planets have never been explored
+    /// @notice Uncharted planets have been explored but are unoccupied
+    /// @notice Colonized planets are controlled by a commander
+    /// @notice The Sanctis
+    //
+    // uint8 constant PLANET_STATUS_UNKNOWN = 0;
+    // uint8 constant PLANET_STATUS_UNCHARTED = 1;
+    // uint8 constant PLANET_STATUS_COLONIZED = 2;
+    // uint8 constant PLANET_STATUS_SANCTIS = 3;
 
     struct Planet {
-        PlanetStatus status;
         uint256 ruler;
         int80 x;
         int80 y;
         int80 z;
         uint8 humidity;
+        uint8 status;
     }
 
     function create(uint256 planetId) external;
 
     function colonize(uint256 ruler, uint256 planetId) external;
-
-    function setPlanetStatus(uint256 planetId, PlanetStatus status) external;
 
     function planet(uint256 planetId) external view returns (Planet memory);
 

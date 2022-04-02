@@ -11,10 +11,10 @@ interface ISanctis {
     function setParliamentExecutor(address newParliamentExecutor) external;
 
     function allowed(address) external view returns (bool);
-    
+
     function setAllowed(address, bool) external;
 
-    function extension(string memory key) external view returns (address);
+    function extension(bytes32 key) external view returns (address);
 
     function insertAndAllowExtension(ISanctisExtension object) external;
 

@@ -2,7 +2,6 @@
 pragma solidity 0.8.10;
 
 import "./IInfrastructure.sol";
-import "./IResource.sol";
 
 interface IPowerPlants is IInfrastructure {
     struct PowerPlant {

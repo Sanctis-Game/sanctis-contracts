@@ -3,9 +3,10 @@ pragma solidity 0.8.10;
 
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
-import "./IRace.sol";
+import "../races/IRace.sol";
+import "../ISanctisExtension.sol";
 
-interface ICommanders is IERC721Metadata {
+interface ICommanders is IERC721Metadata, ISanctisExtension {
     error CommanderZero();
     error NotTheCitadel(address caller);
     error NotApproved(address caller);
@@ -21,7 +22,13 @@ interface ICommanders is IERC721Metadata {
 
     function created() external view returns (uint256);
 
-    function commander(uint256 commanderId) external view returns (Commander memory);
+    function commander(uint256 commanderId)
+        external
+        view
+        returns (Commander memory);
 
-    function isApproved(address caller, uint256 commanderId) external view returns (bool);
+    function isApproved(address caller, uint256 commanderId)
+        external
+        view
+        returns (bool);
 }

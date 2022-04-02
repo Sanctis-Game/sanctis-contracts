@@ -3,27 +3,35 @@ pragma solidity 0.8.10;
 
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/ICommanders.sol";
-import "../interfaces/IPlanets.sol";
-import "../interfaces/ISanctis.sol";
 import "../SanctisExtension.sol";
+import "./ICommanders.sol";
+import "./IPlanets.sol";
 
 contract Commanders is ICommanders, ERC721Enumerable, SanctisExtension {
+    /* ========== Sanctis extensions used ========== */
+    bytes32 constant COMMANDERS = bytes32("COMMANDERS");
+
+    /* ========== Contract variables ========== */
     mapping(uint256 => Commander) private _commanders;
     uint256 private _createdCommanders;
 
-    constructor(ISanctis newSanctis) ERC721("Commanders", "CITIZEN") SanctisExtension("COMMANDERS", newSanctis) {}
+    constructor(ISanctis newSanctis)
+        ERC721("Commanders", "CITIZEN")
+        SanctisExtension(COMMANDERS, newSanctis)
+    {}
 
     function create(string memory name, IRace race) external {
         require(validateName(name), "Commanders: Invalid name");
-        _commanders[_createdCommanders++] = Commander({
-            name: name,
-            race: race
-        });
-        _mint(msg.sender, _createdCommanders);
+        uint256 tokenId = _createdCommanders++;
+        _commanders[tokenId] = Commander({name: name, race: race});
+        _mint(msg.sender, tokenId);
     }
 
-    function commander(uint256 commanderId) external view returns (Commander memory) {
+    function commander(uint256 commanderId)
+        external
+        view
+        returns (Commander memory)
+    {
         return _commanders[commanderId];
     }
 
@@ -31,7 +39,11 @@ contract Commanders is ICommanders, ERC721Enumerable, SanctisExtension {
         return _createdCommanders;
     }
 
-    function isApproved(address caller, uint256 commanderId) external view returns (bool) {
+    function isApproved(address caller, uint256 commanderId)
+        external
+        view
+        returns (bool)
+    {
         return _isApprovedOrOwner(caller, commanderId);
     }
 

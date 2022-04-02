@@ -7,6 +7,13 @@ import "openzeppelin-contracts/contracts/token/ERC20/extensions/draft-ERC20Permi
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-interface ISpaceCredits is IERC20Metadata, IERC20Permit, IVotes {
+import "../ISanctisExtension.sol";
+
+interface ISpaceCredits is
+    IERC20Metadata,
+    IERC20Permit,
+    IVotes,
+    ISanctisExtension
+{
     function mint(address to, uint256 amount) external;
 }

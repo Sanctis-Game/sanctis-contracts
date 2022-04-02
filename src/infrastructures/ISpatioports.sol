@@ -2,8 +2,7 @@
 pragma solidity 0.8.10;
 
 import "./IInfrastructure.sol";
-import "./IResource.sol";
-import "./IShip.sol";
+import "../ships/IShip.sol";
 
 interface ISpatioports is IInfrastructure {
     struct Spatioport {

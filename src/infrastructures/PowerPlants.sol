@@ -5,12 +5,8 @@ import "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
-import "../interfaces/ISanctis.sol";
-import "../interfaces/ICommanders.sol";
-import "../interfaces/IPlanets.sol";
-import "../interfaces/IResource.sol";
-import "../interfaces/IPowerPlants.sol";
 import "./Infrastructure.sol";
+import "./IPowerPlants.sol";
 
 contract PowerPlants is Infrastructure, IPowerPlants {
     /* ========== Contract variables ========== */
@@ -46,7 +42,7 @@ contract PowerPlants is Infrastructure, IPowerPlants {
                 production: _production(_infrastructures[planetId].level),
                 costsResources: _costsResources,
                 nextCosts: _costsAtLevel(_infrastructures[planetId].level),
-                nextUpgrade: _infrastructures[planetId].lastUpgrade + _upgradeDelay**_infrastructures[planetId].level
+                nextUpgrade: _nextUpgrade(planetId)
             });
     }
 
