@@ -26,10 +26,6 @@ interface IShip is ISanctisModule {
 
     function reserve(uint256 planetId) external view returns (uint256);
 
-    function build(uint256 planetId, uint256 amount) external;
-
-    function destroy(uint256 planetId, uint256 amount) external;
-
     function mint(uint256 planetId, uint256 amount) external;
 
     function burn(uint256 planetId, uint256 amount) external;

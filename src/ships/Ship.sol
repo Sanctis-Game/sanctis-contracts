@@ -71,22 +71,6 @@ contract Ship is SanctisModule, IShip {
         return _reserves[planetId];
     }
 
-    function build(uint256 planetId, uint256 amount) external onlyAllowed {
-        // Pay the unit
-        uint256 i;
-        for (; i < _unitCosts.length; ++i) {
-            _costsResources[i].burn(planetId, _unitCosts[i] * amount);
-        }
-
-        mint(planetId, amount);
-    }
-
-    function destroy(uint256 planetId, uint256 amount) external onlyAllowed {
-        // TODO: Refunds
-
-        burn(planetId, amount);
-    }
-
     function mint(uint256 planetId, uint256 amount) public onlyAllowed {
         _reserves[planetId] += amount;
     }

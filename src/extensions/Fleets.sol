@@ -34,18 +34,8 @@ contract Fleets is IFleets, SanctisExtension {
     mapping(uint256 => uint256) internal _planetDefensivePower;
     mapping(IResource => mapping(uint256 => uint256)) internal _stockPerFleet;
     mapping(address => mapping(uint256 => uint256)) internal _shipsPerFleet;
-    mapping(uint256 => uint256) internal _lastPlundering;
-    uint256 internal _plunderPeriod;
-    uint256 internal _plunderRate;
 
-    constructor(
-        ISanctis newSanctis,
-        uint256 plunderPeriod_,
-        uint256 plunderRate_
-    ) SanctisExtension(FLEETS, newSanctis) {
-        _plunderPeriod = plunderPeriod_;
-        _plunderRate = plunderRate_;
-    }
+    constructor(ISanctis newSanctis) SanctisExtension(FLEETS, newSanctis) {}
 
     /* ========== Fleets interfaces ========== */
     function fleet(uint256 fleetId) external view returns (Fleet memory) {
@@ -330,14 +320,6 @@ contract Fleets is IFleets, SanctisExtension {
         onlyAllowed
     {
         _fleets[fleetId] = newFleet;
-    }
-
-    function setParameters(uint256 plunderPeriod_, uint256 plunderRate_)
-        external
-        onlyExecutor
-    {
-        _plunderPeriod = plunderPeriod_;
-        _plunderRate = plunderRate_;
     }
 
     /* ========== Assertions ========== */
