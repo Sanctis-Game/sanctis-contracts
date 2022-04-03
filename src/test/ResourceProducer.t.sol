@@ -75,9 +75,9 @@ contract ResourceProducerTest is DSTest {
         uint256 rewardRate,
         uint256 costRate
     ) public {
-        cheats.assume(delay < 10**9);
-        cheats.assume(rewardBase > 0 && rewardBase < 10**40);
-        cheats.assume(rewardRate > 0 && rewardRate < 10**40);
+        cheats.assume(delay < 10**6);
+        cheats.assume(rewardBase > 0 && rewardBase < 10**35);
+        cheats.assume(rewardRate > 0 && rewardRate < 10**35);
         cheats.assume(costRate > 0 && costRate < rewardBase);
 
         IResource[] memory ironMinesRewardsResources = new IResource[](1);

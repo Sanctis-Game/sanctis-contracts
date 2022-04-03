@@ -17,6 +17,7 @@ import "../resources/Energy.sol";
 import "../infrastructures/PowerPlants.sol";
 import "../infrastructures/Spatioports.sol";
 import "../ships/Ship.sol";
+import "../modules/Plundering.sol";
 
 interface CheatCodes {
     // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input
@@ -32,7 +33,7 @@ interface CheatCodes {
     function assume(bool) external;
 }
 
-contract FleetsTest is DSTest {
+contract PlunderingTest is DSTest {
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
 
     Sanctis sanctis;
@@ -46,10 +47,12 @@ contract FleetsTest is DSTest {
     Energy energy;
     Spatioports spatioports;
     Ship ship;
+    Plundering plundering;
 
     uint256 commanderId;
     uint256 homeworld = 456789;
     uint256 otherworld = 456786;
+    uint256 fleetId = 456786;
 
     function setUp() public {
         sanctis = new Sanctis();
@@ -76,6 +79,19 @@ contract FleetsTest is DSTest {
             infrastructureCostsRates,
             9900
         );
+        IResource[] memory shipCostsResources = new IResource[](1);
+        shipCostsResources[0] = iron;
+        uint256[] memory shipCostsBase = new uint256[](1);
+        shipCostsBase[0] = 10;
+        ship = new Ship(
+            sanctis,
+            100,
+            100,
+            100,
+            10**40,
+            shipCostsResources,
+            shipCostsBase
+        );
 
         sanctis.setParliamentExecutor(address(this));
         sanctis.insertAndAllowExtension(credits);
@@ -86,60 +102,50 @@ contract FleetsTest is DSTest {
         sanctis.setAllowed(address(iron), true);
         sanctis.setAllowed(address(energy), true);
         sanctis.setAllowed(address(spatioports), true);
+        sanctis.setAllowed(address(ship), true);
         sanctis.setAllowed(address(this), true);
+
+        iron.mint(homeworld, 2**223);
 
         commanders.create("Tester", humans);
         commanderId = 0;
         planets.colonize(commanderId, homeworld);
         planets.colonize(commanderId, otherworld);
         spatioports.create(homeworld);
+
+        spatioports.build(homeworld, ship, 1);
+        fleets.createFleet(fleetId, commanderId, homeworld);
+        fleets.addToFleet(fleetId, ship, 1);
+        fleets.putInOrbit(fleetId);
+        fleets.moveFleet(fleetId, otherworld);
+        cheats.roll(fleets.fleet(fleetId).arrivalBlock);
+        fleets.settleFleet(fleetId);
     }
 
-    function testMoveFleet(
-        uint256 shipAmount,
-        uint256 speed,
-        uint256 offensivePower,
-        uint256 defensivePower,
-        uint256 capacity,
-        uint256 fleetId
+    function testPlunder(
+        uint256 plunderPeriod,
+        uint256 plunderRatio,
+        uint256 planetReserve
     ) public {
-        cheats.assume(shipAmount > 0 && shipAmount < 10**18);
-        cheats.assume(speed > 0 && speed < 10**30);
-        cheats.assume(offensivePower > 0 && offensivePower < 10**40);
-        cheats.assume(defensivePower > 0 && defensivePower < 10**40);
-        cheats.assume(capacity > 0 && capacity < 10**40);
+        cheats.assume(plunderPeriod > 0 && plunderPeriod < 10**18);
+        cheats.assume(plunderRatio <= 10000);
+        cheats.assume(planetReserve < 10**40);
+
+        iron.mint(otherworld, planetReserve);
 
         IResource[] memory infrastructureCostsResources = new IResource[](1);
         infrastructureCostsResources[0] = iron;
         uint256[] memory infrastructureCostsBase = new uint256[](1);
         infrastructureCostsBase[0] = 0;
-        ship = new Ship(
-            sanctis,
-            speed,
-            offensivePower,
-            defensivePower,
-            capacity,
-            infrastructureCostsResources,
-            infrastructureCostsBase
+        plundering = new Plundering(sanctis, plunderPeriod, plunderRatio);
+        sanctis.setAllowed(address(plundering), true);
+
+        cheats.roll(block.number + plunderPeriod);
+
+        plundering.plunder(fleetId, iron);
+        assertEq(
+            fleets.resourceInFleet(iron, fleetId),
+            (planetReserve * plunderRatio) / 10000
         );
-
-        sanctis.setAllowed(address(ship), true);
-        iron.mint(homeworld, 2**223);
-
-        spatioports.build(homeworld, ship, shipAmount);
-        fleets.createFleet(fleetId, commanderId, homeworld);
-        fleets.addToFleet(fleetId, ship, shipAmount);
-
-        Fleets.Fleet memory fleet = fleets.fleet(fleetId);
-        assertEq(fleet.totalSpeed, shipAmount * speed);
-        assertEq(fleet.totalOffensivePower, shipAmount * offensivePower);
-        assertEq(fleet.totalDefensivePower, shipAmount * defensivePower);
-        assertEq(fleet.capacity, shipAmount * capacity);
-
-        fleets.putInOrbit(fleetId);
-        fleets.moveFleet(fleetId, otherworld);
-        cheats.roll(fleets.fleet(fleetId).arrivalBlock);
-        fleets.settleFleet(fleetId);
-        assertEq(fleets.fleet(fleetId).fromPlanetId, otherworld);
     }
 }

@@ -94,18 +94,18 @@ contract SpatioportsTest is DSTest {
         cheats.assume(shipCost > 0 && shipCost < 10**40);
         cheats.assume(shipAmount > 0 && shipAmount < 10**18);
 
-        IResource[] memory infrastructureCostsResources = new IResource[](1);
-        infrastructureCostsResources[0] = iron;
-        uint256[] memory infrastructureCostsBase = new uint256[](1);
-        infrastructureCostsBase[0] = shipCost;
+        IResource[] memory shipCostsResources = new IResource[](1);
+        shipCostsResources[0] = iron;
+        uint256[] memory shipCostsBase = new uint256[](1);
+        shipCostsBase[0] = shipCost;
         ship = new Ship(
             sanctis,
             100,
             100,
             100,
             0,
-            infrastructureCostsResources,
-            infrastructureCostsBase
+            shipCostsResources,
+            shipCostsBase
         );
 
         sanctis.setAllowed(address(ship), true);

@@ -35,8 +35,7 @@ contract Ship is SanctisModule, IShip {
         _defensivePower = defensivePower_;
         _capacity = capacity_;
 
-        uint256 i;
-        for (; i < costs.length; ++i) {
+        for (uint256 i; i < costs.length; i++) {
             _costsResources.push(costsResources[i]);
             _unitCosts.push(costs[i]);
         }

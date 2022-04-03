@@ -35,8 +35,7 @@ contract Spatioports is Infrastructure, ISpatioports {
         (IResource[] memory resources, uint256[] memory costs) = ship
             .unitCosts();
         uint256 discount = _discount(_infrastructures[planetId].level);
-        uint256 i;
-        for (; i < costs.length; ++i) {
+        for (uint256 i; i < costs.length; i++) {
             resources[i].burn(planetId, (costs[i] * amount * discount) / 10000);
         }
 
