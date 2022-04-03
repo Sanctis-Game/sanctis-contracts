@@ -65,9 +65,9 @@ contract Planets is IPlanets, SanctisExtension {
         _planets[uint256(planetId)] = Planet({
             status: PLANET_STATUS_UNCHARTED,
             ruler: 0,
-            x: int80(uint80(planetId & 0xFFFFF)),
-            y: int80(uint80((planetId >> 80) & 0xFFFFF)),
-            z: int80(uint80((planetId >> 160) & 0xFFFFF)),
+            x: int80(int256(planetId & 0xFFFFF)),
+            y: int80(int256((planetId >> 80) & 0xFFFFF)),
+            z: int80(int256((planetId >> 160) & 0xFFFFF)),
             humidity: humidity
         });
     }
