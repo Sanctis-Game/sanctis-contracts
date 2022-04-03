@@ -70,7 +70,7 @@ contract Infrastructure is IInfrastructure, SanctisModule {
 
         _beforeUpgrade(planetId);
 
-        uint256[] memory costs = _costsAtLevel(
+        uint256[] memory costs = _costsNextLevel(
             _infrastructures[planetId].level
         );
 
@@ -94,12 +94,12 @@ contract Infrastructure is IInfrastructure, SanctisModule {
     {
         return (
             _costsResources,
-            _costsAtLevel(_infrastructures[planetId].level)
+            _costsNextLevel(_infrastructures[planetId].level)
         );
     }
 
     /* ========== Helpers ========== */
-    function _costsAtLevel(uint256 currentLevel)
+    function _costsNextLevel(uint256 currentLevel)
         internal
         view
         returns (uint256[] memory)
@@ -110,7 +110,7 @@ contract Infrastructure is IInfrastructure, SanctisModule {
             costs[j] =
                 costs[j] +
                 currentLevel *
-                (costs[j] + (_costsRates[j] * (currentLevel - 1)) / 2);
+                (costs[j] + (_costsRates[j] * currentLevel) / 2);
         }
 
         return costs;

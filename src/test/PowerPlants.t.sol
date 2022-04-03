@@ -70,23 +70,52 @@ contract PowerPlantsTest is DSTest {
         iron.mint(homeworld, 10**27);
     }
 
-    function testCreateUpgradePowerPlants(
-        uint256 delay,
-        uint256 rewardBase,
-        uint256 rewardRate,
-        uint256 costRate
-    ) public {
-        cheats.assume(delay < 10**18);
+    function testCreatePowerPlants(uint256 rewardBase, uint256 rewardRate)
+        public
+    {
         cheats.assume(rewardBase > 0 && rewardBase < 10**40);
         cheats.assume(rewardRate > 0 && rewardRate < 10**40);
-        cheats.assume(costRate > 0 && costRate < rewardBase);
 
         IResource[] memory powerPlantsCostsResources = new IResource[](1);
         powerPlantsCostsResources[0] = iron;
         uint256[] memory powerPlantsCostsBase = new uint256[](1);
         powerPlantsCostsBase[0] = 0;
         uint256[] memory powerPlantsCostsRates = new uint256[](1);
-        powerPlantsCostsRates[0] = costRate;
+        powerPlantsCostsRates[0] = 0;
+        PowerPlants powerPlants = new PowerPlants(
+            sanctis,
+            energy,
+            rewardBase,
+            rewardRate,
+            0,
+            powerPlantsCostsResources,
+            powerPlantsCostsBase,
+            powerPlantsCostsRates
+        );
+        sanctis.setAllowed(address(powerPlants), true);
+
+        uint256 reserveBefore = energy.reserve(homeworld);
+        powerPlants.create(homeworld);
+        assertEq(energy.reserve(homeworld), reserveBefore + rewardBase);
+    }
+
+    function testUpgradePowerPlants(
+        uint256 delay,
+        uint256 rewardBase,
+        uint256 rewardRate,
+        uint256 levels
+    ) public {
+        cheats.assume(delay < 10**18);
+        cheats.assume(rewardBase > 0 && rewardBase < 10**40);
+        cheats.assume(rewardRate > 0 && rewardRate < 10**40);
+        cheats.assume(levels > 0 && levels < 10**4);
+
+        IResource[] memory powerPlantsCostsResources = new IResource[](1);
+        powerPlantsCostsResources[0] = iron;
+        uint256[] memory powerPlantsCostsBase = new uint256[](1);
+        powerPlantsCostsBase[0] = 0;
+        uint256[] memory powerPlantsCostsRates = new uint256[](1);
+        powerPlantsCostsRates[0] = 0;
         PowerPlants powerPlants = new PowerPlants(
             sanctis,
             energy,
@@ -98,18 +127,17 @@ contract PowerPlantsTest is DSTest {
             powerPlantsCostsRates
         );
         sanctis.setAllowed(address(powerPlants), true);
-
         powerPlants.create(homeworld);
 
-        uint256 blocksToWait = costRate / (rewardRate + rewardRate) + 1;
-        blocksToWait = blocksToWait > delay ? blocksToWait : delay;
-        cheats.roll(block.number + blocksToWait);
+        for (uint256 i; i < levels; i++) {
+            cheats.roll(block.number + (i + 1) * delay);
 
-        uint256 reserveBefore = energy.reserve(homeworld);
-        powerPlants.upgrade(homeworld);
-        assertEq(
-            energy.reserve(homeworld),
-            reserveBefore + rewardBase + rewardRate
-        );
+            uint256 reserveBefore = energy.reserve(homeworld);
+            powerPlants.upgrade(homeworld);
+            assertEq(
+                energy.reserve(homeworld),
+                reserveBefore + rewardBase + (i + 1) * rewardRate
+            );
+        }
     }
 }

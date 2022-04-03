@@ -68,7 +68,7 @@ contract ResourceProducer is Infrastructure, IResourceProducer {
                     _infrastructures[planetId].level
                 ),
                 costsResources: _costsResources,
-                nextCosts: _costsAtLevel(_infrastructures[planetId].level)
+                nextCosts: _costsNextLevel(_infrastructures[planetId].level)
             });
     }
 

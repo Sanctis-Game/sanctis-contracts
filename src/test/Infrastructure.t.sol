@@ -69,7 +69,38 @@ contract InfrastructuresTest is DSTest {
         planets.colonize(commanderId, homeworld);
     }
 
-    function testCreateUpgradeInfrastructure(
+    function testCreateInfrastructure(
+        uint256 delay,
+        uint256 costBase,
+        uint256 costRate
+    ) public {
+        cheats.assume(delay < 10**9);
+        cheats.assume(costBase > 0 && costBase < 10**40);
+        cheats.assume(costRate > 0 && costRate < 10**40);
+
+        IResource[] memory infrastructureCostsResources = new IResource[](1);
+        infrastructureCostsResources[0] = iron;
+        uint256[] memory infrastructureCostsBase = new uint256[](1);
+        infrastructureCostsBase[0] = costBase;
+        uint256[] memory infrastructureCostsRates = new uint256[](1);
+        infrastructureCostsRates[0] = costRate;
+        Infrastructure infrastructure = new Infrastructure(
+            sanctis,
+            delay,
+            infrastructureCostsResources,
+            infrastructureCostsBase,
+            infrastructureCostsRates
+        );
+
+        sanctis.setAllowed(address(infrastructure), true);
+        iron.mint(homeworld, 2**223);
+
+        uint256 reserveBefore = iron.reserve(homeworld);
+        infrastructure.create(homeworld);
+        assertEq(iron.reserve(homeworld), reserveBefore - costBase);
+    }
+
+    function testUpgradeInfrastructure(
         uint256 startingLevel,
         uint256 delay,
         uint256 costBase,
@@ -96,11 +127,9 @@ contract InfrastructuresTest is DSTest {
 
         sanctis.setAllowed(address(infrastructure), true);
         iron.mint(homeworld, 2**223);
-
-        uint256 reserveBefore = iron.reserve(homeworld);
         infrastructure.create(homeworld);
-        assertEq(iron.reserve(homeworld), reserveBefore - costBase);
 
+        uint256 reserveBefore;
         for (uint256 i; i < startingLevel; i++) {
             cheats.roll(block.number + delay * (i + 1));
             reserveBefore = iron.reserve(homeworld);
@@ -110,5 +139,42 @@ contract InfrastructuresTest is DSTest {
             infrastructure.upgrade(homeworld);
             assertEq(iron.reserve(homeworld), reserveBefore - pastCosts[0]);
         }
+    }
+
+    function testCreateInfrastructureMultipleResources(
+        uint256 delay,
+        uint256 costBase,
+        uint256 costRate
+    ) public {
+        cheats.assume(delay < 10**9);
+        cheats.assume(costBase > 0 && costBase < 10**40);
+        cheats.assume(costRate > 0 && costRate < 10**40);
+
+        IResource[] memory infrastructureCostsResources = new IResource[](2);
+        infrastructureCostsResources[0] = iron;
+        infrastructureCostsResources[1] = silicon;
+        uint256[] memory infrastructureCostsBase = new uint256[](2);
+        infrastructureCostsBase[0] = costBase;
+        infrastructureCostsBase[1] = costBase;
+        uint256[] memory infrastructureCostsRates = new uint256[](2);
+        infrastructureCostsRates[0] = costRate;
+        infrastructureCostsRates[1] = costRate;
+        Infrastructure infrastructure = new Infrastructure(
+            sanctis,
+            delay,
+            infrastructureCostsResources,
+            infrastructureCostsBase,
+            infrastructureCostsRates
+        );
+
+        sanctis.setAllowed(address(infrastructure), true);
+        iron.mint(homeworld, 2**223);
+        silicon.mint(homeworld, 2**223);
+
+        uint256 reserve0Before = iron.reserve(homeworld);
+        uint256 reserve1Before = silicon.reserve(homeworld);
+        infrastructure.create(homeworld);
+        assertEq(iron.reserve(homeworld), reserve0Before - costBase);
+        assertEq(iron.reserve(homeworld), reserve1Before - costBase);
     }
 }

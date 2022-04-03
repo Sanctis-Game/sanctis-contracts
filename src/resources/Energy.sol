@@ -4,6 +4,9 @@ pragma solidity 0.8.10;
 import "./Resource.sol";
 
 contract Energy is Resource {
+    /* ========== Sanctis extensions used ========== */
+    bytes32 constant FLEETS = "FLEETS";
+
     constructor(ISanctis _sanctis) Resource(_sanctis, "Energy", "NRG") {}
 
     function mint(uint256 planetId, uint256 amount)
@@ -21,7 +24,7 @@ contract Energy is Resource {
         onlyAllowed
     {
         require(
-            msg.sender != s_sanctis.extension("FLEETS"),
+            msg.sender != s_sanctis.extension(FLEETS),
             "No fleet transfer"
         );
         _reserves[planetId] -= amount;

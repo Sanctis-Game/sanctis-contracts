@@ -55,7 +55,7 @@ contract Spatioports is Infrastructure, ISpatioports {
             Spatioport({
                 level: _infrastructures[planetId].level,
                 costsResources: _costsResources,
-                nextCosts: _costsAtLevel(_infrastructures[planetId].level),
+                nextCosts: _costsNextLevel(_infrastructures[planetId].level),
                 nextUpgrade: _infrastructures[planetId].lastUpgrade
             });
     }
