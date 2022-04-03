@@ -39,6 +39,7 @@ contracts = [
     ("transporters", "src/ships/Ship.sol:Ship"),
     ("scouts", "src/ships/Ship.sol:Ship"),
     ("destroyers", "src/ships/Ship.sol:Ship"),
+    ("plundering", "src/modules/Plundering.sol:Plundering"),
     ("resourceWrapper", "src/utils/ResourceWrapper.sol:ResourceWrapper"),
 ]
 
@@ -48,7 +49,7 @@ deployer = Deployer(
     contracts,
     is_legacy=True,  # for legacy transactions
     debug=True,  # if True, prints the calling commands and raw output
-    name="test2.1",
+    name="test2.2",
 )
 
 path = [
@@ -65,7 +66,7 @@ path = [
     # Extensions
     (Deployer.DEPLOY, "commanders", ["$sanctis"]),
     (Deployer.DEPLOY, "planets", ["$sanctis", "10000000000000000000"]),
-    (Deployer.DEPLOY, "fleets", ["$sanctis", "84600", "1000"]),
+    (Deployer.DEPLOY, "fleets", ["$sanctis"]),
     # Resource
     (Deployer.DEPLOY, "humans", ["$sanctis"]),
     (Deployer.DEPLOY, "energy", ["$sanctis"]),
@@ -150,9 +151,10 @@ path = [
         [
             "$sanctis",
             "3600",  # Delay
-            "[$iron,$silicon]", # Costs Resources
+            "[$iron,$silicon]",  # Costs Resources
             "[1000000000000000000,1000000000000000000]",  # Costs base
             "[1000000000000000000,10000000000000000]",  # Costs Rates
+            "9500",  # Base Discount
         ],
     ),
     (
@@ -194,9 +196,17 @@ path = [
             "[1000000000000000000,1000000000000000000,1000000000000000000]",  # Costs base
         ],
     ),
+    # Modules
+    (
+        Deployer.DEPLOY,
+        "plundering",
+        ["$sanctis", "84600", "1000"],
+    ),
     # Utils
     (
-        Deployer.DEPLOY,"resourceWrapper",["$sanctis"],
+        Deployer.DEPLOY,
+        "resourceWrapper",
+        ["$sanctis"],
     ),
     # Governance setup
     (
