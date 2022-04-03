@@ -9,3 +9,4 @@ optimizer_runs = 1000000
 # Extreme Fuzzing CI Profile :P
 [ci]
 fuzz_runs = 10000
+verbosity = 4
