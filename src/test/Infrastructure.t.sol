@@ -70,13 +70,11 @@ contract InfrastructuresTest is DSTest {
     }
 
     function testCreateInfrastructure(
-        uint256 delay,
         uint256 costBase,
         uint256 costRate
     ) public {
-        cheats.assume(delay < 10**9);
-        cheats.assume(costBase > 0 && costBase < 10**40);
-        cheats.assume(costRate > 0 && costRate < 10**40);
+        cheats.assume(costBase < 10**40);
+        cheats.assume(costRate < 10**40);
 
         IResource[] memory infrastructureCostsResources = new IResource[](1);
         infrastructureCostsResources[0] = iron;
@@ -86,7 +84,7 @@ contract InfrastructuresTest is DSTest {
         infrastructureCostsRates[0] = costRate;
         Infrastructure infrastructure = new Infrastructure(
             sanctis,
-            delay,
+            0,
             infrastructureCostsResources,
             infrastructureCostsBase,
             infrastructureCostsRates
@@ -142,11 +140,9 @@ contract InfrastructuresTest is DSTest {
     }
 
     function testCreateInfrastructureMultipleResources(
-        uint256 delay,
         uint256 costBase,
         uint256 costRate
     ) public {
-        cheats.assume(delay < 10**9);
         cheats.assume(costBase > 0 && costBase < 10**40);
         cheats.assume(costRate > 0 && costRate < 10**40);
 
@@ -161,7 +157,7 @@ contract InfrastructuresTest is DSTest {
         infrastructureCostsRates[1] = costRate;
         Infrastructure infrastructure = new Infrastructure(
             sanctis,
-            delay,
+            0,
             infrastructureCostsResources,
             infrastructureCostsBase,
             infrastructureCostsRates
@@ -175,6 +171,6 @@ contract InfrastructuresTest is DSTest {
         uint256 reserve1Before = silicon.reserve(homeworld);
         infrastructure.create(homeworld);
         assertEq(iron.reserve(homeworld), reserve0Before - costBase);
-        assertEq(iron.reserve(homeworld), reserve1Before - costBase);
+        assertEq(silicon.reserve(homeworld), reserve1Before - costBase);
     }
 }

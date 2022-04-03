@@ -124,12 +124,12 @@ contract PlunderingTest is DSTest {
 
     function testPlunder(
         uint256 plunderPeriod,
-        uint256 plunderRatio,
-        uint256 planetReserve
+        uint256 plunderRatio
     ) public {
+        uint256 planetReserve = 10**27;
+
         cheats.assume(plunderPeriod > 0 && plunderPeriod < 10**18);
         cheats.assume(plunderRatio <= 10000);
-        cheats.assume(planetReserve < 10**40);
 
         iron.mint(otherworld, planetReserve);
 

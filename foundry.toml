@@ -4,9 +4,10 @@ out = 'out'
 libs = ['lib']
 solc_version = "0.8.10"
 optimizer = true
-optimizer_runs = 1000000
+optimizer_runs = 100000
 
 # Extreme Fuzzing CI Profile :P
 [ci]
-fuzz_runs = 10000
+fuzz_runs = 500
+fuzz_max_global_rejects = 100000
 verbosity = 4

@@ -69,16 +69,12 @@ contract ResourceProducerTest is DSTest {
         planets.colonize(commanderId, homeworld);
     }
 
-    function testCreateUpgradeHarvest(
-        uint256 delay,
+    function testHarvestResourceProducer(
         uint256 rewardBase,
-        uint256 rewardRate,
-        uint256 costRate
+        uint256 rewardRate
     ) public {
-        cheats.assume(delay < 10**6);
         cheats.assume(rewardBase > 0 && rewardBase < 10**35);
         cheats.assume(rewardRate > 0 && rewardRate < 10**35);
-        cheats.assume(costRate > 0 && costRate < rewardBase);
 
         IResource[] memory ironMinesRewardsResources = new IResource[](1);
         ironMinesRewardsResources[0] = iron;
@@ -91,10 +87,10 @@ contract ResourceProducerTest is DSTest {
         uint256[] memory ironMinesCostsBase = new uint256[](1);
         ironMinesCostsBase[0] = 0;
         uint256[] memory ironMinesCostsRates = new uint256[](1);
-        ironMinesCostsRates[0] = costRate;
+        ironMinesCostsRates[0] = 0;
         ResourceProducer ironMines = new ResourceProducer(
             sanctis,
-            delay,
+            0,
             ironMinesRewardsResources,
             ironMinesRewardsBase,
             ironMinesRewardsRates,
@@ -105,11 +101,6 @@ contract ResourceProducerTest is DSTest {
         sanctis.setAllowed(address(ironMines), true);
 
         ironMines.create(homeworld);
-
-        uint256 blocksToWait = costRate / (rewardRate + rewardRate) + 1;
-        blocksToWait = blocksToWait > delay ? blocksToWait : delay;
-        cheats.roll(block.number + blocksToWait);
-
         ironMines.upgrade(homeworld);
 
         cheats.roll(block.number + 1);

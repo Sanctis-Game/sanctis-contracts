@@ -97,17 +97,14 @@ contract FleetsTest is DSTest {
 
     function testMoveFleet(
         uint256 shipAmount,
-        uint256 speed,
-        uint256 offensivePower,
-        uint256 defensivePower,
-        uint256 capacity,
         uint256 fleetId
     ) public {
+        uint256 speed = 100;
+        uint256 offensivePower = 100;
+        uint256 defensivePower = 100;
+        uint256 capacity = 100;
+
         cheats.assume(shipAmount > 0 && shipAmount < 10**18);
-        cheats.assume(speed > 0 && speed < 10**30);
-        cheats.assume(offensivePower > 0 && offensivePower < 10**40);
-        cheats.assume(defensivePower > 0 && defensivePower < 10**40);
-        cheats.assume(capacity > 0 && capacity < 10**40);
 
         IResource[] memory infrastructureCostsResources = new IResource[](1);
         infrastructureCostsResources[0] = iron;
