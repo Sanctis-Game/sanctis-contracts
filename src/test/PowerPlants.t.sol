@@ -20,6 +20,10 @@ interface CheatCodes {
     // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input
     function prank(address, address) external;
 
+    function startPrank(address, address) external;
+
+    function stopPrank() external;
+
     // Set block.number
     function roll(uint256) external;
 
@@ -42,6 +46,7 @@ contract PowerPlantsTest is DSTest {
     Resource silicon;
     Energy energy;
 
+    address player = address(654873213897);
     uint256 commanderId;
     uint256 homeworld = 456789;
 
@@ -64,10 +69,13 @@ contract PowerPlantsTest is DSTest {
         sanctis.setAllowed(address(energy), true);
         sanctis.setAllowed(address(this), true);
 
+        iron.mint(homeworld, 10**27);
+
+        cheats.startPrank(player, player);
         commanders.create("Tester", humans);
         commanderId = 0;
         planets.colonize(commanderId, homeworld);
-        iron.mint(homeworld, 10**27);
+        cheats.stopPrank();
     }
 
     function testCreatePowerPlants(uint256 rewardBase, uint256 rewardRate)
@@ -93,6 +101,8 @@ contract PowerPlantsTest is DSTest {
             powerPlantsCostsRates
         );
         sanctis.setAllowed(address(powerPlants), true);
+
+        cheats.startPrank(player, player);
 
         uint256 reserveBefore = energy.reserve(homeworld);
         powerPlants.create(homeworld);
@@ -127,6 +137,9 @@ contract PowerPlantsTest is DSTest {
             powerPlantsCostsRates
         );
         sanctis.setAllowed(address(powerPlants), true);
+
+        cheats.startPrank(player, player);
+
         powerPlants.create(homeworld);
 
         for (uint256 i; i < levels; i++) {

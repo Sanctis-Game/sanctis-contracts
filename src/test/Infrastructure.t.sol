@@ -20,6 +20,10 @@ interface CheatCodes {
     // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input
     function prank(address, address) external;
 
+    function startPrank(address, address) external;
+
+    function stopPrank() external;
+
     // Set block.number
     function roll(uint256) external;
 
@@ -42,6 +46,8 @@ contract InfrastructuresTest is DSTest {
     Resource silicon;
     Energy energy;
 
+    address player = address(65484632654);
+    address notPlayer = address(65484632656);
     uint256 commanderId;
     uint256 homeworld = 456789;
 
@@ -64,9 +70,11 @@ contract InfrastructuresTest is DSTest {
         sanctis.setAllowed(address(energy), true);
         sanctis.setAllowed(address(this), true);
 
+        cheats.startPrank(player, player);
         commanders.create("Tester", humans);
         commanderId = 0;
         planets.colonize(commanderId, homeworld);
+        cheats.stopPrank();
     }
 
     function testCreateInfrastructure(
@@ -92,6 +100,8 @@ contract InfrastructuresTest is DSTest {
 
         sanctis.setAllowed(address(infrastructure), true);
         iron.mint(homeworld, 2**223);
+
+        cheats.startPrank(player, player);
 
         uint256 reserveBefore = iron.reserve(homeworld);
         infrastructure.create(homeworld);
@@ -125,6 +135,9 @@ contract InfrastructuresTest is DSTest {
 
         sanctis.setAllowed(address(infrastructure), true);
         iron.mint(homeworld, 2**223);
+
+        cheats.startPrank(player, player);
+
         infrastructure.create(homeworld);
 
         uint256 reserveBefore;
@@ -167,10 +180,41 @@ contract InfrastructuresTest is DSTest {
         iron.mint(homeworld, 2**223);
         silicon.mint(homeworld, 2**223);
 
+        cheats.startPrank(player, player);
+
         uint256 reserve0Before = iron.reserve(homeworld);
         uint256 reserve1Before = silicon.reserve(homeworld);
         infrastructure.create(homeworld);
         assertEq(iron.reserve(homeworld), reserve0Before - costBase);
         assertEq(silicon.reserve(homeworld), reserve1Before - costBase);
+    }
+
+    function testFailCreateInfrastructure(
+        uint256 costBase,
+        uint256 costRate
+    ) public {
+        cheats.assume(costBase < 10**40);
+        cheats.assume(costRate < 10**40);
+
+        IResource[] memory infrastructureCostsResources = new IResource[](1);
+        infrastructureCostsResources[0] = iron;
+        uint256[] memory infrastructureCostsBase = new uint256[](1);
+        infrastructureCostsBase[0] = costBase;
+        uint256[] memory infrastructureCostsRates = new uint256[](1);
+        infrastructureCostsRates[0] = costRate;
+        Infrastructure infrastructure = new Infrastructure(
+            sanctis,
+            0,
+            infrastructureCostsResources,
+            infrastructureCostsBase,
+            infrastructureCostsRates
+        );
+
+        sanctis.setAllowed(address(infrastructure), true);
+        iron.mint(homeworld, 2**223);
+
+        cheats.startPrank(notPlayer, notPlayer);
+
+        infrastructure.create(homeworld);
     }
 }

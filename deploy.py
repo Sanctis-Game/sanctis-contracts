@@ -34,7 +34,7 @@ contracts = [
     ("siliconFurnaces", "src/infrastructures/ResourceProducer.sol:ResourceProducer"),
     ("heavyWaterPlants", "src/infrastructures/ResourceProducer.sol:ResourceProducer"),
     ("solarPanels", "src/infrastructures/PowerPlants.sol:PowerPlants"),
-    ("fusionPlants", "src/infrastructures/PowerPlants.sol:PowerPlants"),
+    ("fusionReactors", "src/infrastructures/PowerPlants.sol:PowerPlants"),
     ("spatioports", "src/infrastructures/Spatioports.sol:Spatioports"),
     ("transporters", "src/ships/Ship.sol:Ship"),
     ("scouts", "src/ships/Ship.sol:Ship"),
@@ -52,6 +52,11 @@ deployer = Deployer(
     name="test2.4",
 )
 
+
+def to_ether(number):
+    return f"{number * 10**18:.0f}"
+
+
 path = [
     # Format :
     # (ACTION_TYPE, CONTRACT_LABEL, [ARG, ... ])
@@ -65,7 +70,7 @@ path = [
     (Deployer.DEPLOY, "parliament", ["$credits", keypair["public"]]),
     # Extensions
     (Deployer.DEPLOY, "commanders", ["$sanctis"]),
-    (Deployer.DEPLOY, "planets", ["$sanctis", "10000000000000000000"]),
+    (Deployer.DEPLOY, "planets", ["$sanctis", to_ether(10)]),
     (Deployer.DEPLOY, "fleets", ["$sanctis"]),
     # Resource
     (Deployer.DEPLOY, "humans", ["$sanctis"]),
@@ -80,12 +85,12 @@ path = [
         [
             "$sanctis",
             "36",  # Delay
-            f"[$iron]",  # Rewards resources
-            f"[1000000000000000000]",  # Rewards base
-            f"[1000000000000000000]",  # Rewards rate
+            "[$iron]",  # Rewards resources
+            f"[{to_ether(2)}]",  # Rewards base
+            f"[{to_ether(1)}]",  # Rewards rate
             f"[$iron,$energy]",  # Costs Resources
             f"[0,0]",  # Costs Base
-            f"[1000000000000000000,500000000000000000]",  # Costs Rates
+            f"[{to_ether(10)},{to_ether(2)}]",  # Costs Rates
         ],
     ),
     (
@@ -95,11 +100,11 @@ path = [
             "$sanctis",
             "1600",  # Delay
             "[$silicon]",  # Reward resources
-            "[1000000000000000000]",  # Reward base
-            "[1000000000000000000]",  # Reward rate
+            f"[{to_ether(1)}]",  # Reward base
+            f"[{to_ether(0.5)}]",  # Reward rate
             "[$iron,$energy]",  # Costs Resources
-            "[1000000000000000000,10000000000000000]",  # Costs Base
-            "[1000000000000000000,10000000000000000]",  # Costs Rates
+            f"[{to_ether(10)},{to_ether(4)}]",  # Costs Base
+            f"[{to_ether(5)},{to_ether(5)}]",  # Costs Rates
         ],
     ),
     (
@@ -109,11 +114,11 @@ path = [
             "$sanctis",
             "3600",  # Delay
             "[$deuterium]",  # Reward resources
-            "[1000000000000000000]",  # Reward base
-            "[1000000000000000000]",  # Reward rate
+            f"[{to_ether(1)}]",  # Reward base
+            f"[{to_ether(1)}]",  # Reward rate
             "[$iron,$silicon,$energy]",  # Costs Resources
-            "[1000000000000000000,30000000000000000,30000000000000000]",  # Costs Base
-            "[1000000000000000000,30000000000000000,10000000000000000]",  # Costs Rates
+            f"[{to_ether(100)},{to_ether(50)},{to_ether(10)}]",  # Costs Base
+            f"[{to_ether(100)},{to_ether(20)},{to_ether(10)}]",  # Costs Rates
         ],
     ),
     (
@@ -122,26 +127,26 @@ path = [
         [
             "$sanctis",
             "$energy",
-            "1000000000000000000",  # Reward base
-            "1000000000000000000",  # Reward rate
+            to_ether(20),  # Reward base
+            to_ether(10),  # Reward rate
             "360",  # Delay
             "[$iron,$silicon]",  # Costs Resources
-            "[0,0]",  # Costs Base
-            "[1000000000000000000,10000000000000000]",  # Costs Rates
+            f"[0,0]",  # Costs Base
+            f"[{to_ether(100)},{to_ether(100)}]",  # Costs Rates
         ],
     ),
     (
         Deployer.DEPLOY,
-        "fusionPlants",
+        "fusionReactors",
         [
             "$sanctis",
             "$energy",
-            "1000000000000000000",  # Reward base
-            "1000000000000000000",  # Reward rate
+            to_ether(100),  # Reward base
+            to_ether(100),  # Reward rate
             "3600",  # Delay
             "[$iron,$deuterium]",  # Costs Resources
-            "[1000000000000000000,1000000000000000000]",  # Costs Base
-            "[1000000000000000000,100000000000000000]",  # Costs Rates
+            f"[{to_ether(1000)},{to_ether(100)}]",  # Costs Base
+            f"[{to_ether(500)},{to_ether(100)}]",  # Costs Rates
         ],
     ),
     # Fleets
@@ -152,8 +157,8 @@ path = [
             "$sanctis",
             "3600",  # Delay
             "[$iron,$silicon]",  # Costs Resources
-            "[1000000000000000000,1000000000000000000]",  # Costs base
-            "[1000000000000000000,10000000000000000]",  # Costs Rates
+            f"[{to_ether(200)},{to_ether(100)}]",  # Costs base
+            f"[{to_ether(100)},{to_ether(100)}]",  # Costs Rates
             "9500",  # Base Discount
         ],
     ),
@@ -165,9 +170,9 @@ path = [
             "3600",  # Speed
             "5",  # Offensive power
             "100",  # Defensive power
-            "1000000000000000000",  # Capacity
+            to_ether(100),  # Capacity
             "[$iron,$silicon]",  # Costs resources
-            "[1000000000000000000,1000000000000000000]",  # Costs base
+            f"[{to_ether(100)},{to_ether(10)}]",  # Costs base
         ],
     ),
     (
@@ -180,7 +185,7 @@ path = [
             "1",  # Defensive power
             "0",  # Capacity
             "[$iron,$silicon]",  # Costs resources
-            "[1000000000000000000,3000000000000000000]",  # Costs base
+            f"[{to_ether(50)},{to_ether(100)}]",  # Costs base
         ],
     ),
     (
@@ -193,7 +198,7 @@ path = [
             "125",  # Defensive power
             "0",  # Capacity
             "[$iron,$silicon,$deuterium]",  # Costs resources
-            "[1000000000000000000,1000000000000000000,1000000000000000000]",  # Costs base
+            f"[{to_ether(100)},{to_ether(100)},{to_ether(25)}]",  # Costs base
         ],
     ),
     # Modules
@@ -248,12 +253,22 @@ path = [
     (
         Deployer.SEND,
         "sanctis",
+        ["setAllowed", "$siliconFurnaces", "1"],
+    ),
+    (
+        Deployer.SEND,
+        "sanctis",
         ["setAllowed", "$heavyWaterPlants", "1"],
     ),
     (
         Deployer.SEND,
         "sanctis",
-        ["setAllowed", "$siliconFurnaces", "1"],
+        ["setAllowed", "$solarPanels", "1"],
+    ),
+    (
+        Deployer.SEND,
+        "sanctis",
+        ["setAllowed", "$fusionReactors", "1"],
     ),
     (
         Deployer.SEND,
@@ -279,6 +294,11 @@ path = [
         Deployer.SEND,
         "sanctis",
         ["setAllowed", "$resourceWrapper", "1"],
+    ),
+    (
+        Deployer.SEND,
+        "sanctis",
+        ["setAllowed", "$plundering", "1"],
     ),
     # Mint initial supply
     (
