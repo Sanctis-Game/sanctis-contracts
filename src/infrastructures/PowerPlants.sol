@@ -10,13 +10,13 @@ import "./IPowerPlants.sol";
 
 contract PowerPlants is Infrastructure, IPowerPlants {
     /* ========== Contract variables ========== */
-    IResource internal _energy;
-    uint256 internal _rewardsBase;
-    uint256 internal _rewardsRates;
+    IResource internal s_energy;
+    uint256 internal s_rewardsBase;
+    uint256 internal s_rewardsRates;
 
     constructor(
         ISanctis sanctis,
-        IResource energy,
+        IResource _energy,
         uint256 rewardsBase,
         uint256 rewardsRates,
         uint256 delay,
@@ -24,39 +24,43 @@ contract PowerPlants is Infrastructure, IPowerPlants {
         uint256[] memory costsBase,
         uint256[] memory costsRates
     ) Infrastructure(sanctis, delay, costsResources, costsBase, costsRates) {
-        _energy = energy;
-        _rewardsBase = rewardsBase;
-        _rewardsRates = rewardsRates;
+        s_energy = _energy;
+        s_rewardsBase = rewardsBase;
+        s_rewardsRates = rewardsRates;
     }
 
     /* ========== Power plant interfaces ========== */
-    function powerPlant(uint256 planetId)
+    function energy() external view returns (IResource) {
+        return s_energy;
+    }
+
+    function currentProduction(uint256 planetId)
         external
         view
-        returns (PowerPlant memory)
+        returns (uint256)
     {
-        return
-            PowerPlant({
-                level: _infrastructures[planetId].level,
-                energy: _energy,
-                production: _production(_infrastructures[planetId].level),
-                costsResources: _costsResources,
-                nextCosts: _costsNextLevel(_infrastructures[planetId].level),
-                nextUpgrade: _nextUpgrade(planetId)
-            });
+        return _production(s_infrastructures[planetId].level);
+    }
+
+    function nextProduction(uint256 planetId) external view returns (uint256) {
+        return _production(s_infrastructures[planetId].level + 1);
     }
 
     /* ========== Infrastructure interfaces ========== */
     function _beforeCreation(uint256 planetId) internal override {
-        _energy.mint(planetId, _production(0));
+        s_energy.mint(planetId, _production(0));
     }
 
     function _beforeUpgrade(uint256 planetId) internal override {
-        _energy.mint(planetId, _production(_infrastructures[planetId].level));
+        s_energy.mint(
+            planetId,
+            _production(s_infrastructures[planetId].level) -
+                _production(s_infrastructures[planetId].level - 1)
+        );
     }
 
     /* ========== Helpers ========== */
     function _production(uint256 infraLevel) internal view returns (uint256) {
-        return _rewardsBase + infraLevel * _rewardsRates;
+        return s_rewardsBase + infraLevel * s_rewardsRates;
     }
 }

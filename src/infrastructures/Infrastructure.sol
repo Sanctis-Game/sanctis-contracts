@@ -22,11 +22,11 @@ contract Infrastructure is IInfrastructure, SanctisModule {
         uint256 lastUpgrade;
     }
 
-    mapping(uint256 => BaseInfrastructure) internal _infrastructures;
+    mapping(uint256 => BaseInfrastructure) internal s_infrastructures;
     uint256 internal _upgradeDelay;
-    IResource[] internal _costsResources;
-    uint256[] internal _costsBase;
-    uint256[] internal _costsRates;
+    IResource[] internal s_costsResources;
+    uint256[] internal s_costsBase;
+    uint256[] internal s_costsRates;
 
     constructor(
         ISanctis _sanctis,
@@ -39,27 +39,27 @@ contract Infrastructure is IInfrastructure, SanctisModule {
 
         uint256 i;
         for (; i < costsBase.length; ++i) {
-            _costsResources.push(costResources[i]);
-            _costsBase.push(costsBase[i]);
-            _costsRates.push(costsRates[i]);
+            s_costsResources.push(costResources[i]);
+            s_costsBase.push(costsBase[i]);
+            s_costsRates.push(costsRates[i]);
         }
     }
 
     /* ========== Infrastructure interfaces ========== */
     function create(uint256 planetId) external {
-        require(_infrastructures[planetId].level == 0, "Already exists");
+        require(s_infrastructures[planetId].level == 0, "Already exists");
         _isPlanetOwner(msg.sender, planetId);
 
         _beforeCreation(planetId);
 
-        _infrastructures[planetId] = BaseInfrastructure({
+        s_infrastructures[planetId] = BaseInfrastructure({
             level: 1,
             lastUpgrade: block.number
         });
 
-        uint256[] memory costs = _costsBase;
-        for (uint256 i = 0; i < costs.length; i++) {
-            _costsResources[i].burn(planetId, costs[i]);
+        uint256[] memory _costs = s_costsBase;
+        for (uint256 i = 0; i < _costs.length; i++) {
+            s_costsResources[i].burn(planetId, _costs[i]);
         }
     }
 
@@ -70,61 +70,65 @@ contract Infrastructure is IInfrastructure, SanctisModule {
 
         _beforeUpgrade(planetId);
 
-        uint256[] memory costs = _costsNextLevel(
-            _infrastructures[planetId].level
+        uint256[] memory _costs = _costsUpgrade(
+            s_infrastructures[planetId].level
         );
 
-        _infrastructures[planetId].level += 1;
-        _infrastructures[planetId].lastUpgrade = block.number;
+        s_infrastructures[planetId].level += 1;
+        s_infrastructures[planetId].lastUpgrade = block.number;
 
         uint256 i;
-        for (; i < costs.length; ++i) {
-            _costsResources[i].burn(planetId, costs[i]);
+        for (; i < _costs.length; ++i) {
+            s_costsResources[i].burn(planetId, _costs[i]);
         }
     }
 
     function level(uint256 planetId) external view returns (uint256) {
-        return _infrastructures[planetId].level;
+        return s_infrastructures[planetId].level;
     }
 
-    function costsNextLevel(uint256 planetId)
+    function nextUpgrade(uint256 planetId) external view returns (uint256) {
+        return _nextUpgrade(planetId);
+    }
+
+    function costs(uint256 planetId)
         external
         view
         returns (IResource[] memory, uint256[] memory)
     {
         return (
-            _costsResources,
-            _costsNextLevel(_infrastructures[planetId].level)
+            s_costsResources,
+            _costsUpgrade(s_infrastructures[planetId].level)
         );
     }
 
     /* ========== Helpers ========== */
-    function _costsNextLevel(uint256 currentLevel)
+    function _costsUpgrade(uint256 fromLevel)
         internal
         view
         returns (uint256[] memory)
     {
-        uint256[] memory costs = _costsBase;
+        uint256[] memory _costs = s_costsBase;
         uint256 j;
-        for (; j < costs.length; ++j) {
-            costs[j] =
-                costs[j] +
-                currentLevel *
-                (costs[j] + (_costsRates[j] * currentLevel) / 2);
+        for (; j < _costs.length; ++j) {
+            _costs[j] =
+                _costs[j] +
+                fromLevel *
+                (_costs[j] + (s_costsRates[j] * fromLevel) / 2);
         }
 
-        return costs;
+        return _costs;
     }
 
     function _nextUpgrade(uint256 planetId) internal view returns (uint256) {
         return
-            _infrastructures[planetId].lastUpgrade +
+            s_infrastructures[planetId].lastUpgrade +
             _upgradeDelay *
-            _infrastructures[planetId].level;
+            s_infrastructures[planetId].level;
     }
 
     function _assertInfrastructureExists(uint256 planetId) internal view {
-        if (_infrastructures[planetId].level == 0)
+        if (s_infrastructures[planetId].level == 0)
             revert InfrastructureDoesNotExist({
                 infrastructure: address(this),
                 planetId: planetId

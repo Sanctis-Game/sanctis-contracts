@@ -9,11 +9,11 @@ import "./Infrastructure.sol";
 import "./IResourceProducer.sol";
 
 contract ResourceProducer is Infrastructure, IResourceProducer {
-    mapping(uint256 => uint256) private _lastHarvests;
-
-    IResource[] internal _rewardsResources;
-    uint256[] internal _rewardsBase;
-    uint256[] internal _rewardsRates;
+    /* ========== Contract variables ========== */
+    mapping(uint256 => uint256) internal s_lastHarvests;
+    IResource[] internal s_rewardsResources;
+    uint256[] internal s_rewardsBase;
+    uint256[] internal s_rewardsRates;
 
     constructor(
         ISanctis sanctis,
@@ -31,52 +31,62 @@ contract ResourceProducer is Infrastructure, IResourceProducer {
             "Rewards mismatch"
         );
         for (uint256 i = 0; i < rewardsBase.length; i++) {
-            _rewardsResources.push(rewardsResources[i]);
-            _rewardsBase.push(rewardsBase[i]);
-            _rewardsRates.push(rewardsRates[i]);
+            s_rewardsResources.push(rewardsResources[i]);
+            s_rewardsBase.push(rewardsBase[i]);
+            s_rewardsRates.push(rewardsRates[i]);
         }
     }
 
     /* ========== Extractor interfaces ========== */
     function harvest(uint256 planetId) public {
-        if (_infrastructures[planetId].level == 0)
+        if (s_infrastructures[planetId].level == 0)
             revert ExtractorExistence({planetId: planetId});
 
         uint256[] memory harvestable = _production(
-            _infrastructures[planetId].level
+            s_infrastructures[planetId].level
         );
-        uint256 elapsedBlocks = block.number - _lastHarvests[planetId];
-        _lastHarvests[planetId] = block.number;
+        uint256 elapsedBlocks = block.number - s_lastHarvests[planetId];
+        s_lastHarvests[planetId] = block.number;
 
         for (uint256 i = 0; i < harvestable.length; i++) {
-            _rewardsResources[i].mint(planetId, harvestable[i] * elapsedBlocks);
+            s_rewardsResources[i].mint(
+                planetId,
+                harvestable[i] * elapsedBlocks
+            );
         }
     }
 
-    function characteristics(uint256 planetId)
+    function lastHarvest(uint256 planetId) external view returns (uint256) {
+        return s_lastHarvests[planetId];
+    }
+
+    function currentProduction(uint256 planetId)
         external
         view
-        returns (Characteristics memory)
+        returns (IResource[] memory, uint256[] memory)
     {
-        return
-            Characteristics({
-                level: _infrastructures[planetId].level,
-                lastHarvest: _lastHarvests[planetId],
-                nextUpgrade: _nextUpgrade(planetId),
-                producedResources: _rewardsResources,
-                productionPerBlock: _production(
-                    _infrastructures[planetId].level
-                ),
-                costsResources: _costsResources,
-                nextCosts: _costsNextLevel(_infrastructures[planetId].level)
-            });
+        return (
+            s_rewardsResources,
+            _production(s_infrastructures[planetId].level)
+        );
+    }
+
+    function nextProduction(uint256 planetId)
+        external
+        view
+        returns (IResource[] memory, uint256[] memory)
+    {
+        return (
+            s_rewardsResources,
+            _production(s_infrastructures[planetId].level + 1)
+        );
     }
 
     /* ========== Infrastructure hooks ========== */
     function _beforeCreation(uint256 planetId) internal override {
         _planetHasResource(planetId);
 
-        _lastHarvests[planetId] = block.number;
+        s_lastHarvests[planetId] = block.number;
     }
 
     function _beforeUpgrade(uint256 planetId) internal override {
@@ -85,11 +95,11 @@ contract ResourceProducer is Infrastructure, IResourceProducer {
 
     /* ========== Helpers ========== */
     function _planetHasResource(uint256 planetId) internal view {
-        for (uint256 i = 0; i < _rewardsBase.length; i++)
-            if (!_rewardsResources[i].isAvailableOnPlanet(planetId))
+        for (uint256 i = 0; i < s_rewardsBase.length; i++)
+            if (!s_rewardsResources[i].isAvailableOnPlanet(planetId))
                 revert ResourceNotOnPlanet({
                     planetId: planetId,
-                    resource: _rewardsResources[i]
+                    resource: s_rewardsResources[i]
                 });
     }
 
@@ -98,9 +108,9 @@ contract ResourceProducer is Infrastructure, IResourceProducer {
         view
         returns (uint256[] memory)
     {
-        uint256[] memory production = _rewardsBase;
+        uint256[] memory production = s_rewardsBase;
         for (uint256 i = 0; i < production.length; i++) {
-            production[i] += infraLevel * _rewardsRates[i];
+            production[i] += infraLevel * s_rewardsRates[i];
         }
         return production;
     }

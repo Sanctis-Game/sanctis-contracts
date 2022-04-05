@@ -13,7 +13,9 @@ interface IInfrastructure is ISanctisModule {
 
     function level(uint256 planetId) external view returns (uint256);
 
-    function costsNextLevel(uint256 planetId)
+    function nextUpgrade(uint256 planetId) external view returns (uint256);
+
+    function costs(uint256 planetId)
         external
         view
         returns (IResource[] memory, uint256[] memory);

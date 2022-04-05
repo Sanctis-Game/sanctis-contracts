@@ -10,7 +10,7 @@ import "./ISpatioports.sol";
 
 contract Spatioports is Infrastructure, ISpatioports {
     /* ========== Spatioport interfaces ========== */
-    uint256 internal _discountFactor;
+    uint256 internal s_discountFactor;
 
     constructor(
         ISanctis sanctis,
@@ -20,7 +20,7 @@ contract Spatioports is Infrastructure, ISpatioports {
         uint256[] memory costsRates,
         uint256 discount
     ) Infrastructure(sanctis, delay, costsResources, costsBase, costsRates) {
-        _discountFactor = discount;
+        s_discountFactor = discount;
     }
 
     /* ========== Spatioport interfaces ========== */
@@ -34,7 +34,7 @@ contract Spatioports is Infrastructure, ISpatioports {
 
         (IResource[] memory resources, uint256[] memory costs) = ship
             .unitCosts();
-        uint256 discount = _discount(_infrastructures[planetId].level);
+        uint256 discount = _discount(s_infrastructures[planetId].level);
         for (uint256 i; i < costs.length; i++) {
             resources[i].burn(planetId, (costs[i] * amount * discount) / 10000);
         }
@@ -43,25 +43,19 @@ contract Spatioports is Infrastructure, ISpatioports {
     }
 
     function discountFactor() external view returns (uint256) {
-        return _discountFactor;
+        return s_discountFactor;
     }
 
-    function spatioport(uint256 planetId)
-        public
-        view
-        returns (Spatioport memory)
-    {
-        return
-            Spatioport({
-                level: _infrastructures[planetId].level,
-                costsResources: _costsResources,
-                nextCosts: _costsNextLevel(_infrastructures[planetId].level),
-                nextUpgrade: _infrastructures[planetId].lastUpgrade
-            });
+    function currentDiscount(uint256 planetId) external view returns (uint256) {
+        return _discount(s_infrastructures[planetId].level);
+    }
+
+    function nextDiscount(uint256 planetId) external view returns (uint256) {
+        return _discount(s_infrastructures[planetId].level + 1);
     }
 
     /* ========== Contract variables ========== */
     function _discount(uint256 level) internal view returns (uint256) {
-        return _discountFactor**(level + 1) / 10000**level;
+        return s_discountFactor**(level + 1) / 10000**level;
     }
 }

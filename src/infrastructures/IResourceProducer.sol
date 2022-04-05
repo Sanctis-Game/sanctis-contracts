@@ -6,20 +6,17 @@ import "./IInfrastructure.sol";
 interface IResourceProducer is IInfrastructure {
     error ExtractorExistence(uint256 planetId);
 
-    struct Characteristics {
-        uint256 level;
-        uint256 lastHarvest;
-        uint256 nextUpgrade;
-        IResource[] producedResources;
-        uint256[] productionPerBlock;
-        IResource[] costsResources;
-        uint256[] nextCosts;
-    }
-
     function harvest(uint256 planetId) external;
 
-    function characteristics(uint256 planetId)
+    function lastHarvest(uint256 planetId) external view returns (uint256);
+
+    function currentProduction(uint256 planetId)
         external
         view
-        returns (Characteristics memory);
+        returns (IResource[] memory, uint256[] memory);
+
+    function nextProduction(uint256 planetId)
+        external
+        view
+        returns (IResource[] memory, uint256[] memory);
 }

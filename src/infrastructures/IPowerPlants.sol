@@ -13,8 +13,12 @@ interface IPowerPlants is IInfrastructure {
         uint256 nextUpgrade;
     }
 
-    function powerPlant(uint256 planetId)
+    function energy() external view returns (IResource);
+
+    function currentProduction(uint256 planetId)
         external
         view
-        returns (PowerPlant memory);
+        returns (uint256);
+
+    function nextProduction(uint256 planetId) external view returns (uint256);
 }
