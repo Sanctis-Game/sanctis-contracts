@@ -77,10 +77,9 @@ contract InfrastructuresTest is DSTest {
         cheats.stopPrank();
     }
 
-    function testCreateInfrastructure(
-        uint256 costBase,
-        uint256 costRate
-    ) public {
+    function testCreateInfrastructure(uint256 costBase, uint256 costRate)
+        public
+    {
         cheats.assume(costBase < 10**40);
         cheats.assume(costRate < 10**40);
 
@@ -144,9 +143,7 @@ contract InfrastructuresTest is DSTest {
         for (uint256 i; i < startingLevel; i++) {
             cheats.roll(block.number + delay * (i + 1));
             reserveBefore = iron.reserve(homeworld);
-            (, uint256[] memory pastCosts) = infrastructure.costsNextLevel(
-                homeworld
-            );
+            (, uint256[] memory pastCosts) = infrastructure.costs(homeworld);
             infrastructure.upgrade(homeworld);
             assertEq(iron.reserve(homeworld), reserveBefore - pastCosts[0]);
         }
@@ -189,10 +186,9 @@ contract InfrastructuresTest is DSTest {
         assertEq(silicon.reserve(homeworld), reserve1Before - costBase);
     }
 
-    function testFailCreateInfrastructure(
-        uint256 costBase,
-        uint256 costRate
-    ) public {
+    function testFailCreateInfrastructure(uint256 costBase, uint256 costRate)
+        public
+    {
         cheats.assume(costBase < 10**40);
         cheats.assume(costRate < 10**40);
 

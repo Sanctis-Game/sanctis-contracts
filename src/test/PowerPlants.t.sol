@@ -145,11 +145,10 @@ contract PowerPlantsTest is DSTest {
         for (uint256 i; i < levels; i++) {
             cheats.roll(block.number + (i + 1) * delay);
 
-            uint256 reserveBefore = energy.reserve(homeworld);
             powerPlants.upgrade(homeworld);
             assertEq(
                 energy.reserve(homeworld),
-                reserveBefore + rewardBase + (i + 1) * rewardRate
+                powerPlants.currentProduction(homeworld)
             );
         }
     }

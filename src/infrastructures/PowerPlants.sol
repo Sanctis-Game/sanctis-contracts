@@ -39,28 +39,28 @@ contract PowerPlants is Infrastructure, IPowerPlants {
         view
         returns (uint256)
     {
-        return _production(s_infrastructures[planetId].level);
+        return _nextProduction(s_infrastructures[planetId].level - 1);
     }
 
     function nextProduction(uint256 planetId) external view returns (uint256) {
-        return _production(s_infrastructures[planetId].level + 1);
+        return _nextProduction(s_infrastructures[planetId].level);
     }
 
     /* ========== Infrastructure interfaces ========== */
     function _beforeCreation(uint256 planetId) internal override {
-        s_energy.mint(planetId, _production(0));
+        s_energy.mint(planetId, s_rewardsBase);
     }
 
     function _beforeUpgrade(uint256 planetId) internal override {
-        s_energy.mint(
-            planetId,
-            _production(s_infrastructures[planetId].level) -
-                _production(s_infrastructures[planetId].level - 1)
-        );
+        s_energy.mint(planetId, s_rewardsRates);
     }
 
     /* ========== Helpers ========== */
-    function _production(uint256 infraLevel) internal view returns (uint256) {
+    function _nextProduction(uint256 infraLevel)
+        internal
+        view
+        returns (uint256)
+    {
         return s_rewardsBase + infraLevel * s_rewardsRates;
     }
 }
