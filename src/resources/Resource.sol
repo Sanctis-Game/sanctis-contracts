@@ -12,27 +12,27 @@ import "./IResource.sol";
  * Contract defining a base for resource handling
  */
 contract Resource is SanctisModule, IResource {
-    mapping(uint256 => uint256) internal _reserves;
-
-    string internal _name;
-    string internal _symbol;
+    /* ========== Contract variables ========== */
+    mapping(uint256 => uint256) internal s_reserves;
+    string internal s_name;
+    string internal s_symbol;
 
     constructor(
         ISanctis sanctis_,
         string memory name_,
         string memory symbol_
     ) SanctisModule(sanctis_) {
-        _name = name_;
-        _symbol = symbol_;
+        s_name = name_;
+        s_symbol = symbol_;
     }
 
     /* ========== Resource interfaces ========== */
     function name() external view returns (string memory) {
-        return _name;
+        return s_name;
     }
 
     function symbol() external view returns (string memory) {
-        return _symbol;
+        return s_symbol;
     }
 
     /**
@@ -45,7 +45,7 @@ contract Resource is SanctisModule, IResource {
         virtual
         onlyAllowed
     {
-        _reserves[planetId] += amount;
+        s_reserves[planetId] += amount;
         emit Mint(planetId, amount);
     }
 
@@ -54,7 +54,7 @@ contract Resource is SanctisModule, IResource {
         virtual
         onlyAllowed
     {
-        _reserves[planetId] -= amount;
+        s_reserves[planetId] -= amount;
         emit Burn(planetId, amount);
     }
 
@@ -64,6 +64,6 @@ contract Resource is SanctisModule, IResource {
     }
 
     function reserve(uint256 planetId) external view returns (uint256) {
-        return _reserves[planetId];
+        return s_reserves[planetId];
     }
 }

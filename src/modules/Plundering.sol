@@ -28,17 +28,17 @@ contract Plundering is IPlundering, SanctisModule {
     uint256 constant FLEET_STATUS_TRAVELLING = 2;
     uint256 constant FLEET_STATUS_DESTROYED = 3;
 
-    mapping(uint256 => uint256) internal _lastPlundering;
-    uint256 internal _plunderPeriod;
-    uint256 internal _plunderRate;
+    mapping(uint256 => uint256) internal s_lastPlundering;
+    uint256 internal s_plunderPeriod;
+    uint256 internal s_plunderRate;
 
     constructor(
         ISanctis newSanctis,
         uint256 plunderPeriod_,
         uint256 plunderRate_
     ) SanctisModule(newSanctis) {
-        _plunderPeriod = plunderPeriod_;
-        _plunderRate = plunderRate_;
+        s_plunderPeriod = plunderPeriod_;
+        s_plunderRate = plunderRate_;
     }
 
     /* ========== Fleets interfaces ========== */
@@ -59,7 +59,7 @@ contract Plundering is IPlundering, SanctisModule {
         if (targetPlanet.status != PLANET_STATUS_COLONIZED)
             revert IPlanets.InvalidPlanet({planet: targetFleet.fromPlanetId});
         if (
-            _lastPlundering[targetFleet.fromPlanetId] + _plunderPeriod >
+            s_lastPlundering[targetFleet.fromPlanetId] + s_plunderPeriod >
             block.number
         ) revert PlunderingTooEarly({planetId: targetFleet.fromPlanetId});
 
@@ -68,9 +68,9 @@ contract Plundering is IPlundering, SanctisModule {
         if (targetFleet.totalOffensivePower <= planetDefensivePower)
             revert FleetTooWeak({fleetId: fleetId});
 
-        _lastPlundering[targetFleet.fromPlanetId] = block.number;
+        s_lastPlundering[targetFleet.fromPlanetId] = block.number;
         uint256 plunderAmount = (resource.reserve(targetFleet.fromPlanetId) *
-            _plunderRate) / 10000;
+            s_plunderRate) / 10000;
         uint256 loadable = plunderAmount >= targetFleet.capacity
             ? targetFleet.capacity
             : plunderAmount;
@@ -105,23 +105,23 @@ contract Plundering is IPlundering, SanctisModule {
     }
 
     function plunderPeriod() external view returns (uint256) {
-        return _plunderPeriod;
+        return s_plunderPeriod;
     }
 
     function plunderRate() external view returns (uint256) {
-        return _plunderRate;
+        return s_plunderRate;
     }
 
     function nextPlundering(uint256 planetId) external view returns (uint256) {
-        return _lastPlundering[planetId] + _plunderPeriod;
+        return s_lastPlundering[planetId] + s_plunderPeriod;
     }
 
     function setParameters(uint256 plunderPeriod_, uint256 plunderRate_)
         external
         onlyExecutor
     {
-        _plunderPeriod = plunderPeriod_;
-        _plunderRate = plunderRate_;
+        s_plunderPeriod = plunderPeriod_;
+        s_plunderRate = plunderRate_;
     }
 
     /* ========== Assertions ========== */

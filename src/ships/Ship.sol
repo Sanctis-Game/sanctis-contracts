@@ -9,17 +9,17 @@ import "../SanctisModule.sol";
 import "./IShip.sol";
 
 contract Ship is SanctisModule, IShip {
+    /* ========== Contract variables ========== */
     /// @notice Amount of ships on a given planet
-    mapping(uint256 => uint256) internal _reserves;
+    mapping(uint256 => uint256) internal s_reserves;
     /// @notice Amount of ship in a given fleet
-    mapping(uint256 => uint256) internal _fleets;
-
-    uint256 internal _speed;
-    uint256 internal _offensivePower;
-    uint256 internal _defensivePower;
-    uint256 internal _capacity;
-    IResource[] internal _costsResources;
-    uint256[] internal _unitCosts;
+    mapping(uint256 => uint256) internal s_fleets;
+    uint256 internal s_speed;
+    uint256 internal s_offensivePower;
+    uint256 internal s_defensivePower;
+    uint256 internal s_capacity;
+    IResource[] internal s_costsResources;
+    uint256[] internal s_unitCosts;
 
     constructor(
         ISanctis newSanctis,
@@ -30,32 +30,32 @@ contract Ship is SanctisModule, IShip {
         IResource[] memory costsResources,
         uint256[] memory costs
     ) SanctisModule(newSanctis) {
-        _speed = speed_;
-        _offensivePower = offensivePower_;
-        _defensivePower = defensivePower_;
-        _capacity = capacity_;
+        s_speed = speed_;
+        s_offensivePower = offensivePower_;
+        s_defensivePower = defensivePower_;
+        s_capacity = capacity_;
 
         for (uint256 i; i < costs.length; i++) {
-            _costsResources.push(costsResources[i]);
-            _unitCosts.push(costs[i]);
+            s_costsResources.push(costsResources[i]);
+            s_unitCosts.push(costs[i]);
         }
     }
 
     /* ========== Ship interfaces ========== */
     function speed() external view returns (uint256) {
-        return _speed;
+        return s_speed;
     }
 
     function offensivePower() external view returns (uint256) {
-        return _offensivePower;
+        return s_offensivePower;
     }
 
     function defensivePower() external view returns (uint256) {
-        return _defensivePower;
+        return s_defensivePower;
     }
 
     function capacity() external view returns (uint256) {
-        return _capacity;
+        return s_capacity;
     }
 
     function unitCosts()
@@ -63,18 +63,18 @@ contract Ship is SanctisModule, IShip {
         view
         returns (IResource[] memory, uint256[] memory)
     {
-        return (_costsResources, _unitCosts);
+        return (s_costsResources, s_unitCosts);
     }
 
     function reserve(uint256 planetId) external view returns (uint256) {
-        return _reserves[planetId];
+        return s_reserves[planetId];
     }
 
     function mint(uint256 planetId, uint256 amount) public onlyAllowed {
-        _reserves[planetId] += amount;
+        s_reserves[planetId] += amount;
     }
 
     function burn(uint256 planetId, uint256 amount) public onlyAllowed {
-        _reserves[planetId] -= amount;
+        s_reserves[planetId] -= amount;
     }
 }

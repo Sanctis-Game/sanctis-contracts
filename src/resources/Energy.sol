@@ -14,7 +14,7 @@ contract Energy is Resource {
         override
         onlyAllowed
     {
-        _reserves[planetId] += amount;
+        s_reserves[planetId] += amount;
         emit Mint(planetId, amount);
     }
 
@@ -23,11 +23,8 @@ contract Energy is Resource {
         override
         onlyAllowed
     {
-        require(
-            msg.sender != s_sanctis.extension(FLEETS),
-            "No fleet transfer"
-        );
-        _reserves[planetId] -= amount;
+        require(msg.sender != s_sanctis.extension(FLEETS), "No fleet transfer");
+        s_reserves[planetId] -= amount;
         emit Burn(planetId, amount);
     }
 }

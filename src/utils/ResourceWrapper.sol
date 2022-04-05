@@ -17,7 +17,7 @@ contract ResourceWrapper is SanctisModule {
     bytes32 constant FLEETS = "FLEETS";
 
     /* ========== Contract variables ========== */
-    mapping(uint256 => mapping(address => WrappedResource)) internal _tokens;
+    mapping(uint256 => mapping(address => WrappedResource)) internal s_tokens;
 
     constructor(ISanctis _sanctis) SanctisModule(_sanctis) {}
 
@@ -34,14 +34,17 @@ contract ResourceWrapper is SanctisModule {
             fleetId
         );
         if (
-            address(_tokens[fleet.fromPlanetId][address(resource)]) ==
+            address(s_tokens[fleet.fromPlanetId][address(resource)]) ==
             address(0)
         )
-            _tokens[fleet.fromPlanetId][
+            s_tokens[fleet.fromPlanetId][
                 address(resource)
             ] = new WrappedResource(resource, fleet.fromPlanetId);
 
-        _tokens[fleet.fromPlanetId][address(resource)].mint(msg.sender, amount);
+        s_tokens[fleet.fromPlanetId][address(resource)].mint(
+            msg.sender,
+            amount
+        );
     }
 
     function burnToFleet(
@@ -51,7 +54,7 @@ contract ResourceWrapper is SanctisModule {
     ) external {
         // Burning planet-specific tokens acting as IOUs
         // It will fail if the token does not exist or the balance is invalid
-        _tokens[
+        s_tokens[
             IFleets(s_sanctis.extension(FLEETS)).fleet(fleetId).fromPlanetId
         ][address(resource)].burn(msg.sender, amount);
 
@@ -64,6 +67,6 @@ contract ResourceWrapper is SanctisModule {
         view
         returns (address)
     {
-        return address(_tokens[planetId][address(resource)]);
+        return address(s_tokens[planetId][address(resource)]);
     }
 }

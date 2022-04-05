@@ -9,14 +9,16 @@ import "../SanctisModule.sol";
 import "./IRace.sol";
 
 abstract contract Race is IRace, SanctisModule {
-    string internal _name;
+    string internal s_name;
 
-    constructor(ISanctis sanctis_, string memory name_) SanctisModule(sanctis_) {
-        _name = name_;
+    constructor(ISanctis sanctis_, string memory name_)
+        SanctisModule(sanctis_)
+    {
+        s_name = name_;
     }
 
     /* ========== Resource interfaces ========== */
     function name() external view returns (string memory) {
-        return _name;
+        return s_name;
     }
 }

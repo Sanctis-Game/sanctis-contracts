@@ -5,13 +5,13 @@ import "./ISanctisExtension.sol";
 import "./SanctisModule.sol";
 
 abstract contract SanctisExtension is SanctisModule, ISanctisExtension {
-    bytes32 _key;
+    bytes32 s_key;
 
-    constructor(bytes32 key_, ISanctis _sanctis) SanctisModule(_sanctis) {
-        _key = key_;
+    constructor(bytes32 _key, ISanctis _sanctis) SanctisModule(_sanctis) {
+        s_key = _key;
     }
 
     function key() external view returns (bytes32) {
-        return _key;
+        return s_key;
     }
 }
