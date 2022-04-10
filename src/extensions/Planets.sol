@@ -45,6 +45,8 @@ contract Planets is IPlanets, SanctisExtension {
             z: 0,
             humidity: 125
         });
+
+        emit Changed({id: 0, status: PLANET_STATUS_SANCTIS});
     }
 
     function setColonizationCost(uint256 newCost) public onlyExecutor {
@@ -71,12 +73,7 @@ contract Planets is IPlanets, SanctisExtension {
             humidity: humidity
         });
 
-        emit Changed({
-            x: int80(int256(planetId & 0xFFFFF)),
-            y: int80(int256((planetId >> 80) & 0xFFFFF)),
-            z: int80(int256((planetId >> 160) & 0xFFFFF)),
-            status: PLANET_STATUS_UNCHARTED
-        });
+        emit Changed({id: planetId, status: PLANET_STATUS_UNCHARTED});
     }
 
     function colonize(uint256 ruler, uint256 planetId) external {
@@ -103,12 +100,7 @@ contract Planets is IPlanets, SanctisExtension {
             colonizationCost
         );
 
-        emit Changed({
-            x: int80(int256(planetId & 0xFFFFF)),
-            y: int80(int256((planetId >> 80) & 0xFFFFF)),
-            z: int80(int256((planetId >> 160) & 0xFFFFF)),
-            status: PLANET_STATUS_COLONIZED
-        });
+        emit Changed({id: planetId, status: PLANET_STATUS_COLONIZED});
     }
 
     function planet(uint256 planetId) external view returns (Planet memory) {

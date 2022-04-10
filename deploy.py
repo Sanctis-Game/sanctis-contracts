@@ -50,7 +50,7 @@ deployer = Deployer(
     contracts,
     is_legacy=True,  # for legacy transactions
     debug=True,  # if True, prints the calling commands and raw output
-    name="test3.0",
+    name="test3.1",
 )
 
 
