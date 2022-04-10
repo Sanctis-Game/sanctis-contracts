@@ -9,6 +9,7 @@ class Network:
     LOCAL = "--rpc-url http://127.0.0.1:8545"
     FTM_MAINNET = "--rpc-url https://rpc.fantom.network/"
     FTM_TESTNET = "--rpc-url https://xapi.testnet.fantom.network/lachesis"
+    MATIC_TESTNET = "--rpc-url https://matic-mumbai.chainstacklabs.com"
 
 
 signer = Signer(
@@ -44,12 +45,12 @@ contracts = [
 ]
 
 deployer = Deployer(
-    Network.FTM_TESTNET,
+    Network.MATIC_TESTNET,
     signer,
     contracts,
     is_legacy=True,  # for legacy transactions
     debug=True,  # if True, prints the calling commands and raw output
-    name="test2.5",
+    name="test3.0",
 )
 
 
@@ -70,7 +71,7 @@ path = [
     (Deployer.DEPLOY, "parliament", ["$credits", keypair["public"]]),
     # Extensions
     (Deployer.DEPLOY, "commanders", ["$sanctis"]),
-    (Deployer.DEPLOY, "planets", ["$sanctis", to_ether(10)]),
+    (Deployer.DEPLOY, "planets", ["$sanctis", to_ether(0)]),
     (Deployer.DEPLOY, "fleets", ["$sanctis"]),
     # Resource
     (Deployer.DEPLOY, "humans", ["$sanctis"]),
@@ -86,8 +87,8 @@ path = [
             "$sanctis",
             "36",  # Delay
             "[$iron]",  # Rewards resources
-            f"[{to_ether(2)}]",  # Rewards base
-            f"[{to_ether(1)}]",  # Rewards rate
+            f"[{to_ether(0.2)}]",  # Rewards base
+            f"[{to_ether(0.1)}]",  # Rewards rate
             f"[$iron,$energy]",  # Costs Resources
             f"[0,0]",  # Costs Base
             f"[{to_ether(10)},{to_ether(2)}]",  # Costs Rates
@@ -100,8 +101,8 @@ path = [
             "$sanctis",
             "1600",  # Delay
             "[$silicon]",  # Reward resources
-            f"[{to_ether(1)}]",  # Reward base
-            f"[{to_ether(0.5)}]",  # Reward rate
+            f"[{to_ether(0.1)}]",  # Reward base
+            f"[{to_ether(0.05)}]",  # Reward rate
             "[$iron,$energy]",  # Costs Resources
             f"[{to_ether(10)},{to_ether(4)}]",  # Costs Base
             f"[{to_ether(5)},{to_ether(5)}]",  # Costs Rates
@@ -114,8 +115,8 @@ path = [
             "$sanctis",
             "3600",  # Delay
             "[$deuterium]",  # Reward resources
-            f"[{to_ether(1)}]",  # Reward base
-            f"[{to_ether(1)}]",  # Reward rate
+            f"[{to_ether(0.1)}]",  # Reward base
+            f"[{to_ether(0.1)}]",  # Reward rate
             "[$iron,$silicon,$energy]",  # Costs Resources
             f"[{to_ether(100)},{to_ether(50)},{to_ether(10)}]",  # Costs Base
             f"[{to_ether(100)},{to_ether(20)},{to_ether(10)}]",  # Costs Rates

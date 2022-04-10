@@ -69,6 +69,6 @@ contract PlanetsTest is DSTest {
         credits.mint(address(this), cost);
         commanders.create("T", humans);
         credits.approve(address(planets), cost);
-        planets.colonize(0, homeworld);
+        planets.colonize(commanders.created(), homeworld);
     }
 }

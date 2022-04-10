@@ -9,6 +9,8 @@ interface IPlanets is ISanctisExtension {
     error PlanetAlreadyColonized(uint256 planet, uint8 status);
     error NotTheOwner(uint256 ruler);
 
+    event Changed(int80 x, int80 y, int80 z, uint8 status);
+
     /// @notice Unknown planets have never been explored
     /// @notice Uncharted planets have been explored but are unoccupied
     /// @notice Colonized planets are controlled by a commander

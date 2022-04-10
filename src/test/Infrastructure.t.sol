@@ -72,7 +72,7 @@ contract InfrastructuresTest is DSTest {
 
         cheats.startPrank(player, player);
         commanders.create("Tester", humans);
-        commanderId = 0;
+        commanderId = commanders.created();
         planets.colonize(commanderId, homeworld);
         cheats.stopPrank();
     }

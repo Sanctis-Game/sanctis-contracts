@@ -52,7 +52,7 @@ contract PlunderingTest is DSTest {
     uint256 commanderId;
     uint256 homeworld = 456789;
     uint256 otherworld = 456786;
-    uint256 fleetId = 456786;
+    uint256 fleetId = 0;
 
     function setUp() public {
         sanctis = new Sanctis();
@@ -108,13 +108,13 @@ contract PlunderingTest is DSTest {
         iron.mint(homeworld, 2**223);
 
         commanders.create("Tester", humans);
-        commanderId = 0;
+        commanderId = 1;
         planets.colonize(commanderId, homeworld);
         planets.colonize(commanderId, otherworld);
         spatioports.create(homeworld);
 
         spatioports.build(homeworld, ship, 1);
-        fleets.createFleet(fleetId, commanderId, homeworld);
+        fleets.createFleet(commanderId, homeworld);
         fleets.addToFleet(fleetId, ship, 1);
         fleets.putInOrbit(fleetId);
         fleets.moveFleet(fleetId, otherworld);
@@ -122,10 +122,7 @@ contract PlunderingTest is DSTest {
         fleets.settleFleet(fleetId);
     }
 
-    function testPlunder(
-        uint256 plunderPeriod,
-        uint256 plunderRatio
-    ) public {
+    function testPlunder(uint256 plunderPeriod, uint256 plunderRatio) public {
         uint256 planetReserve = 10**27;
 
         cheats.assume(plunderPeriod > 0 && plunderPeriod < 10**18);

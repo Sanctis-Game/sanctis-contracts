@@ -53,6 +53,8 @@ contract ResourceWrapperTest is DSTest {
     Spatioports spatioports;
     Ship transporters;
 
+    uint256 commander;
+
     function setUp() public {
         sanctis = new Sanctis();
 
@@ -105,15 +107,16 @@ contract ResourceWrapperTest is DSTest {
     function testMintFromFleet() public {
         uint256 homeworld = 1020;
         commanders.create("Tester", humans);
+        commander = commanders.created();
         credits.approve(address(planets), COLONIZATION_COST * 2);
-        planets.colonize(0, homeworld);
+        planets.colonize(commander, homeworld);
         iron.mint(homeworld, 10**27);
         spatioports.create(homeworld);
 
-        uint256 fleetId = 20898;
+        uint256 fleetId = 0;
         uint256 transportersCount = 100;
         uint256 wrappedQuantity = 10**18;
-        fleets.createFleet(fleetId, 0, homeworld);
+        fleets.createFleet(commander, homeworld);
         spatioports.build(homeworld, transporters, transportersCount);
         fleets.addToFleet(fleetId, transporters, transportersCount);
         fleets.load(fleetId, iron, wrappedQuantity);
@@ -130,14 +133,14 @@ contract ResourceWrapperTest is DSTest {
         uint256 homeworld = 1020;
         commanders.create("Tester", humans);
         credits.approve(address(planets), COLONIZATION_COST * 2);
-        planets.colonize(0, homeworld);
+        planets.colonize(commanders.created(), homeworld);
         iron.mint(homeworld, 10**27);
         spatioports.create(homeworld);
 
-        uint256 fleetId = 20898;
+        uint256 fleetId = 0;
         uint256 transportersCount = 100;
         uint256 wrappedQuantity = 10**18;
-        fleets.createFleet(fleetId, 0, homeworld);
+        fleets.createFleet(commanders.created(), homeworld);
         spatioports.build(homeworld, transporters, transportersCount);
         fleets.addToFleet(fleetId, transporters, transportersCount);
         fleets.load(fleetId, iron, wrappedQuantity);

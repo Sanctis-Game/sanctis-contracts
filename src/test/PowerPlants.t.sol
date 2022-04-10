@@ -73,7 +73,7 @@ contract PowerPlantsTest is DSTest {
 
         cheats.startPrank(player, player);
         commanders.create("Tester", humans);
-        commanderId = 0;
+        commanderId = 1;
         planets.colonize(commanderId, homeworld);
         cheats.stopPrank();
     }

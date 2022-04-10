@@ -22,7 +22,7 @@ contract Commanders is ICommanders, ERC721Enumerable, SanctisExtension {
 
     function create(string memory name, IRace race) external {
         require(validateName(name), "Commanders: Invalid name");
-        uint256 tokenId = _createdCommanders++;
+        uint256 tokenId = ++_createdCommanders;
         _commanders[tokenId] = Commander({name: name, race: race});
         _mint(msg.sender, tokenId);
     }

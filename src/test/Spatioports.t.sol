@@ -85,7 +85,7 @@ contract SpatioportsTest is DSTest {
         sanctis.setAllowed(address(this), true);
 
         commanders.create("Tester", humans);
-        commanderId = 0;
+        commanderId = 1;
         planets.colonize(commanderId, homeworld);
         spatioports.create(homeworld);
     }

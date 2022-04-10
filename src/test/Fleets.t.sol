@@ -89,20 +89,18 @@ contract FleetsTest is DSTest {
         sanctis.setAllowed(address(this), true);
 
         commanders.create("Tester", humans);
-        commanderId = 0;
+        commanderId = commanders.created();
         planets.colonize(commanderId, homeworld);
         planets.colonize(commanderId, otherworld);
         spatioports.create(homeworld);
     }
 
-    function testMoveFleet(
-        uint256 shipAmount,
-        uint256 fleetId
-    ) public {
+    function testMoveFleet(uint256 shipAmount) public {
         uint256 speed = 100;
         uint256 offensivePower = 100;
         uint256 defensivePower = 100;
         uint256 capacity = 100;
+        uint256 fleetId = 0;
 
         cheats.assume(shipAmount > 0 && shipAmount < 10**18);
 
@@ -124,7 +122,7 @@ contract FleetsTest is DSTest {
         iron.mint(homeworld, 2**223);
 
         spatioports.build(homeworld, ship, shipAmount);
-        fleets.createFleet(fleetId, commanderId, homeworld);
+        fleets.createFleet(commanderId, homeworld);
         fleets.addToFleet(fleetId, ship, shipAmount);
 
         Fleets.Fleet memory fleet = fleets.fleet(fleetId);

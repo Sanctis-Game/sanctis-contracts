@@ -14,7 +14,7 @@ interface IFleets is ISanctisExtension {
     error EmptyFleet(uint256 fleetId);
     error NotArrivedYet(uint256 fleetId);
 
-    event Moved(uint256 fleet, uint256 from, uint256 to);
+    event Moved(uint256 fleet, uint256 from, uint256 to, uint256 status);
 
     struct Fleet {
         uint256 commander;
@@ -50,11 +50,7 @@ interface IFleets is ISanctisExtension {
         view
         returns (uint256);
 
-    function createFleet(
-        uint256 fleetId,
-        uint256 commanderId,
-        uint256 planetId
-    ) external;
+    function createFleet(uint256 commanderId, uint256 planetId) external;
 
     function addToFleet(
         uint256 fleetId,

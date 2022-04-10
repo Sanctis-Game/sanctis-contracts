@@ -28,6 +28,7 @@ contract Fleets is IFleets, SanctisExtension {
     uint256 constant FLEET_STATUS_TRAVELLING = 2;
     uint256 constant FLEET_STATUS_DESTROYED = 3;
 
+    uint256 internal _createdFleets;
     mapping(uint256 => Fleet) internal _fleets;
     mapping(uint256 => EnumerableSet.UintSet) internal _fleetsOnPlanet;
     mapping(uint256 => uint256) internal _planetOffensivePower;
@@ -77,11 +78,8 @@ contract Fleets is IFleets, SanctisExtension {
         return _stockPerFleet[resource][fleetId];
     }
 
-    function createFleet(
-        uint256 fleetId,
-        uint256 commanderId,
-        uint256 planetId
-    ) public {
+    function createFleet(uint256 commanderId, uint256 planetId) public {
+        uint256 fleetId = _createdFleets++;
         Fleet memory targetFleet = _fleets[fleetId];
 
         if (targetFleet.commander != 0)
@@ -104,6 +102,13 @@ contract Fleets is IFleets, SanctisExtension {
         targetFleet.status = FLEET_STATUS_PREPARING;
         _fleets[fleetId] = targetFleet;
         _fleetsOnPlanet[planetId].add(fleetId);
+
+        emit Moved({
+            fleet: fleetId,
+            from: targetFleet.fromPlanetId,
+            to: targetFleet.toPlanetId,
+            status: FLEET_STATUS_PREPARING
+        });
     }
 
     function addToFleet(
@@ -188,6 +193,13 @@ contract Fleets is IFleets, SanctisExtension {
             .totalOffensivePower;
         _planetDefensivePower[targetFleet.fromPlanetId] -= targetFleet
             .totalDefensivePower;
+
+        emit Moved({
+            fleet: fleetId,
+            from: targetFleet.fromPlanetId,
+            to: targetFleet.toPlanetId,
+            status: FLEET_STATUS_ORBITING
+        });
     }
 
     function land(uint256 fleetId) external {
@@ -207,6 +219,13 @@ contract Fleets is IFleets, SanctisExtension {
             .totalOffensivePower;
         _planetDefensivePower[targetFleet.fromPlanetId] += targetFleet
             .totalDefensivePower;
+
+        emit Moved({
+            fleet: fleetId,
+            from: targetFleet.fromPlanetId,
+            to: targetFleet.toPlanetId,
+            status: FLEET_STATUS_PREPARING
+        });
     }
 
     function moveFleet(uint256 fleetId, uint256 toPlanetId) external {
@@ -237,6 +256,13 @@ contract Fleets is IFleets, SanctisExtension {
 
         _fleets[fleetId] = targetFleet;
         _fleetsOnPlanet[targetFleet.fromPlanetId].remove(fleetId);
+
+        emit Moved({
+            fleet: fleetId,
+            from: targetFleet.fromPlanetId,
+            to: targetFleet.toPlanetId,
+            status: FLEET_STATUS_TRAVELLING
+        });
     }
 
     function settleFleet(uint256 fleetId) external {
@@ -252,6 +278,13 @@ contract Fleets is IFleets, SanctisExtension {
 
         _fleets[fleetId] = targetFleet;
         _fleetsOnPlanet[targetFleet.fromPlanetId].add(fleetId);
+
+        emit Moved({
+            fleet: fleetId,
+            from: targetFleet.fromPlanetId,
+            to: targetFleet.toPlanetId,
+            status: FLEET_STATUS_ORBITING
+        });
     }
 
     function load(

@@ -65,14 +65,13 @@ contract ResourceProducerTest is DSTest {
         sanctis.setAllowed(address(energy), true);
 
         commanders.create("Tester", humans);
-        commanderId = 0;
+        commanderId = commanders.created();
         planets.colonize(commanderId, homeworld);
     }
 
-    function testHarvestResourceProducer(
-        uint256 rewardBase,
-        uint256 rewardRate
-    ) public {
+    function testHarvestResourceProducer(uint256 rewardBase, uint256 rewardRate)
+        public
+    {
         cheats.assume(rewardBase > 0 && rewardBase < 10**35);
         cheats.assume(rewardRate > 0 && rewardRate < 10**35);
 
