@@ -9,7 +9,7 @@ class Network:
     LOCAL = "--rpc-url http://127.0.0.1:8545"
     FTM_MAINNET = "--rpc-url https://rpc.fantom.network/"
     FTM_TESTNET = "--rpc-url https://xapi.testnet.fantom.network/lachesis"
-    MATIC_TESTNET = "--rpc-url https://matic-mumbai.chainstacklabs.com"
+    MATIC_TESTNET = "--rpc-url https://rpc-mumbai.maticvigil.com"
 
 
 signer = Signer(
@@ -50,7 +50,7 @@ deployer = Deployer(
     contracts,
     is_legacy=True,  # for legacy transactions
     debug=True,  # if True, prints the calling commands and raw output
-    name="test3.1",
+    name="test3.2",
 )
 
 
@@ -99,7 +99,7 @@ path = [
         "siliconFurnaces",
         [
             "$sanctis",
-            "1600",  # Delay
+            "160",  # Delay
             "[$silicon]",  # Reward resources
             f"[{to_ether(0.1)}]",  # Reward base
             f"[{to_ether(0.05)}]",  # Reward rate
@@ -113,7 +113,7 @@ path = [
         "heavyWaterPlants",
         [
             "$sanctis",
-            "3600",  # Delay
+            "360",  # Delay
             "[$deuterium]",  # Reward resources
             f"[{to_ether(0.1)}]",  # Reward base
             f"[{to_ether(0.1)}]",  # Reward rate
@@ -130,7 +130,7 @@ path = [
             "$energy",
             to_ether(20),  # Reward base
             to_ether(10),  # Reward rate
-            "360",  # Delay
+            "50",  # Delay
             "[$iron,$silicon]",  # Costs Resources
             f"[0,0]",  # Costs Base
             f"[{to_ether(100)},{to_ether(100)}]",  # Costs Rates
@@ -144,7 +144,7 @@ path = [
             "$energy",
             to_ether(100),  # Reward base
             to_ether(100),  # Reward rate
-            "3600",  # Delay
+            "1000",  # Delay
             "[$iron,$deuterium]",  # Costs Resources
             f"[{to_ether(1000)},{to_ether(100)}]",  # Costs Base
             f"[{to_ether(500)},{to_ether(100)}]",  # Costs Rates
@@ -156,7 +156,7 @@ path = [
         "spatioports",
         [
             "$sanctis",
-            "3600",  # Delay
+            "100",  # Delay
             "[$iron,$silicon]",  # Costs Resources
             f"[{to_ether(200)},{to_ether(100)}]",  # Costs base
             f"[{to_ether(100)},{to_ether(100)}]",  # Costs Rates

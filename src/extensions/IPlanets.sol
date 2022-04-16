@@ -9,7 +9,7 @@ interface IPlanets is ISanctisExtension {
     error PlanetAlreadyColonized(uint256 planet, uint8 status);
     error NotTheOwner(uint256 ruler);
 
-    event Changed(uint256 id, uint8 status);
+    event Changed(uint256 indexed id, uint256 indexed ruler, uint8 status);
 
     /// @notice Unknown planets have never been explored
     /// @notice Uncharted planets have been explored but are unoccupied
@@ -33,6 +33,12 @@ interface IPlanets is ISanctisExtension {
     function create(uint256 planetId) external;
 
     function colonize(uint256 ruler, uint256 planetId) external;
+
+    function setPlanet(
+        uint256 planetId,
+        uint256 ruler,
+        uint8 status
+    ) external;
 
     function planet(uint256 planetId) external view returns (Planet memory);
 
