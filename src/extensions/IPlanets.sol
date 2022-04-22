@@ -8,13 +8,13 @@ interface IPlanets is ISanctisExtension {
 
     /// @notice Unknown planets have never been explored
     /// @notice Uncharted planets have been explored but are unoccupied
-    /// @notice Colonized planets are controlled by a commander
     /// @notice The Sanctis
+    /// @notice Colonized planets are controlled by a commander
     //
     // uint8 constant PLANET_STATUS_UNKNOWN = 0;
     // uint8 constant PLANET_STATUS_UNCHARTED = 1;
-    // uint8 constant PLANET_STATUS_COLONIZED = 2;
-    // uint8 constant PLANET_STATUS_SANCTIS = 3;
+    // uint8 constant PLANET_STATUS_SANCTIS = 2;
+    // uint8 constant PLANET_STATUS_COLONIZED = 3;
 
     struct Planet {
         uint256 ruler;
@@ -26,8 +26,6 @@ interface IPlanets is ISanctisExtension {
     }
 
     function create(uint256 planetId) external;
-
-    function colonize(uint256 ruler, uint256 planetId) external;
 
     function setPlanet(
         uint256 planetId,

@@ -2,8 +2,6 @@
 pragma solidity 0.8.10;
 
 import "ds-test/test.sol";
-import "openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockControl.sol";
-import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 import "../Sanctis.sol";
 import "../extensions/ISpaceCredits.sol";
@@ -13,6 +11,7 @@ import "../extensions/Planets.sol";
 import "../extensions/Fleets.sol";
 import "../races/Humans.sol";
 import "../infrastructures/Spatioports.sol";
+import "../modules/Colonize.sol";
 
 interface CheatCodes {
     // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input
@@ -36,6 +35,7 @@ contract PlanetsTest is DSTest {
     Commanders commanders;
     Planets planets;
     Humans humans;
+    Colonize colonize;
 
     function setUp() public {
         sanctis = new Sanctis();
@@ -43,18 +43,29 @@ contract PlanetsTest is DSTest {
         commanders = new Commanders(sanctis);
         planets = new Planets(sanctis);
         humans = new Humans(sanctis);
+        colonize = new Colonize(sanctis, 0);
 
         sanctis.setParliamentExecutor(address(this));
         sanctis.insertAndAllowExtension(credits);
         sanctis.insertAndAllowExtension(commanders);
         sanctis.insertAndAllowExtension(planets);
         sanctis.setAllowed(address(humans), true);
+        sanctis.setAllowed(address(colonize), true);
     }
 
-    function testCreatePlanet(uint256 homeworld) public {
-        cheats.assume(homeworld != 0 && homeworld < type(uint240).max);
+    function testColonizePlanet(uint256 cost, uint256 homeworld) public {
+        cheats.assume(
+            cost < 2**224 && homeworld != 0 && homeworld < type(uint240).max
+        );
 
+        planets = new Planets(sanctis);
+        sanctis.insertAndAllowExtension(planets);
+
+        credits.mint(address(this), cost);
         commanders.create("T", humans);
-        planets.create(homeworld);
+        credits.approve(address(planets), cost);
+        colonize.colonize(commanders.created(), homeworld);
+
+        assertEq(planets.planet(homeworld).ruler, commanders.created());
     }
 }

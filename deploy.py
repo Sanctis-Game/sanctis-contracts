@@ -41,6 +41,7 @@ contracts = [
     ("scouts", "src/ships/Ship.sol:Ship"),
     ("destroyers", "src/ships/Ship.sol:Ship"),
     ("plundering", "src/modules/Plundering.sol:Plundering"),
+    ("colonize", "src/modules/Colonize.sol:Colonize"),
     ("resourceWrapper", "src/utils/ResourceWrapper.sol:ResourceWrapper"),
 ]
 
@@ -71,7 +72,7 @@ path = [
     (Deployer.DEPLOY, "parliament", ["$credits", keypair["public"]]),
     # Extensions
     (Deployer.DEPLOY, "commanders", ["$sanctis"]),
-    (Deployer.DEPLOY, "planets", ["$sanctis", to_ether(0)]),
+    (Deployer.DEPLOY, "planets", ["$sanctis"]),
     (Deployer.DEPLOY, "fleets", ["$sanctis"]),
     # Resource
     (Deployer.DEPLOY, "humans", ["$sanctis"]),
@@ -208,6 +209,11 @@ path = [
         "plundering",
         ["$sanctis", "84600", "1000"],
     ),
+    (
+        Deployer.DEPLOY,
+        "colonize",
+        ["$sanctis", f"{to_ether(0)}"],
+    ),
     # Utils
     (
         Deployer.DEPLOY,
@@ -295,6 +301,11 @@ path = [
         Deployer.SEND,
         "sanctis",
         ["setAllowed", "$resourceWrapper", "1"],
+    ),
+    (
+        Deployer.SEND,
+        "sanctis",
+        ["setAllowed", "$colonize", "1"],
     ),
     (
         Deployer.SEND,

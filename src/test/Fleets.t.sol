@@ -2,8 +2,6 @@
 pragma solidity 0.8.10;
 
 import "ds-test/test.sol";
-import "openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockControl.sol";
-import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 import "../Sanctis.sol";
 import "../extensions/ISpaceCredits.sol";
@@ -17,6 +15,7 @@ import "../resources/Energy.sol";
 import "../infrastructures/PowerPlants.sol";
 import "../infrastructures/Spatioports.sol";
 import "../ships/Ship.sol";
+import "../modules/Colonize.sol";
 
 interface CheatCodes {
     // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input
@@ -46,6 +45,7 @@ contract FleetsTest is DSTest {
     Energy energy;
     Spatioports spatioports;
     Ship ship;
+    Colonize colonize;
 
     uint256 commanderId;
     uint256 homeworld = 456789;
@@ -55,12 +55,13 @@ contract FleetsTest is DSTest {
         sanctis = new Sanctis();
         credits = new SpaceCredits(sanctis);
         commanders = new Commanders(sanctis);
-        planets = new Planets(sanctis, 0);
+        planets = new Planets(sanctis);
         fleets = new Fleets(sanctis);
         humans = new Humans(sanctis);
         iron = new Resource(sanctis, "Iron", "IRON");
         silicon = new Resource(sanctis, "Silicon", "SILI");
         energy = new Energy(sanctis);
+        colonize = new Colonize(sanctis, 0);
 
         IResource[] memory infrastructureCostsResources = new IResource[](1);
         infrastructureCostsResources[0] = iron;
@@ -86,12 +87,13 @@ contract FleetsTest is DSTest {
         sanctis.setAllowed(address(iron), true);
         sanctis.setAllowed(address(energy), true);
         sanctis.setAllowed(address(spatioports), true);
+        sanctis.setAllowed(address(colonize), true);
         sanctis.setAllowed(address(this), true);
 
         commanders.create("Tester", humans);
         commanderId = commanders.created();
-        planets.colonize(commanderId, homeworld);
-        planets.colonize(commanderId, otherworld);
+        colonize.colonize(commanderId, homeworld);
+        colonize.colonize(commanderId, otherworld);
         spatioports.create(homeworld);
     }
 

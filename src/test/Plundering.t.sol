@@ -18,6 +18,7 @@ import "../infrastructures/PowerPlants.sol";
 import "../infrastructures/Spatioports.sol";
 import "../ships/Ship.sol";
 import "../modules/Plundering.sol";
+import "../modules/Colonize.sol";
 
 interface CheatCodes {
     // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input
@@ -48,6 +49,7 @@ contract PlunderingTest is DSTest {
     Spatioports spatioports;
     Ship ship;
     Plundering plundering;
+    Colonize colonize;
 
     uint256 commanderId;
     uint256 homeworld = 456789;
@@ -58,12 +60,13 @@ contract PlunderingTest is DSTest {
         sanctis = new Sanctis();
         credits = new SpaceCredits(sanctis);
         commanders = new Commanders(sanctis);
-        planets = new Planets(sanctis, 0);
+        planets = new Planets(sanctis);
         fleets = new Fleets(sanctis);
         humans = new Humans(sanctis);
         iron = new Resource(sanctis, "Iron", "IRON");
         silicon = new Resource(sanctis, "Silicon", "SILI");
         energy = new Energy(sanctis);
+        colonize = new Colonize(sanctis, 0);
 
         IResource[] memory infrastructureCostsResources = new IResource[](1);
         infrastructureCostsResources[0] = iron;
@@ -103,14 +106,15 @@ contract PlunderingTest is DSTest {
         sanctis.setAllowed(address(energy), true);
         sanctis.setAllowed(address(spatioports), true);
         sanctis.setAllowed(address(ship), true);
+        sanctis.setAllowed(address(colonize), true);
         sanctis.setAllowed(address(this), true);
 
         iron.mint(homeworld, 2**223);
 
         commanders.create("Tester", humans);
         commanderId = 1;
-        planets.colonize(commanderId, homeworld);
-        planets.colonize(commanderId, otherworld);
+        colonize.colonize(commanderId, homeworld);
+        colonize.colonize(commanderId, otherworld);
         spatioports.create(homeworld);
 
         spatioports.build(homeworld, ship, 1);

@@ -2,8 +2,6 @@
 pragma solidity 0.8.10;
 
 import "ds-test/test.sol";
-import "openzeppelin-contracts/contracts/governance/extensions/GovernorTimelockControl.sol";
-import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 
 import "../Sanctis.sol";
 import "../extensions/ISpaceCredits.sol";

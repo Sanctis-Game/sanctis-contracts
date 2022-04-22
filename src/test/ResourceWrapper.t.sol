@@ -15,6 +15,7 @@ import "../resources/Resource.sol";
 import "../infrastructures/Spatioports.sol";
 import "../ships/Ship.sol";
 import "../utils/ResourceWrapper.sol";
+import "../modules/Colonize.sol";
 
 interface CheatCodes {
     // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input
@@ -30,7 +31,6 @@ interface CheatCodes {
 contract ResourceWrapperTest is DSTest {
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
 
-    uint256 constant COLONIZATION_COST = 10**18;
     uint256 constant CITIZEN_CAPACITY = 1000;
     uint256 constant EXTRACTORS_BASE_REWARDS = 1000;
     uint256 constant EXTRACTORS_REWARDS_RATE = 1000;
@@ -47,6 +47,7 @@ contract ResourceWrapperTest is DSTest {
     Planets planets;
     Fleets fleets;
     ResourceWrapper wrapper;
+    Colonize colonize;
 
     Humans humans;
     Resource iron;
@@ -60,9 +61,10 @@ contract ResourceWrapperTest is DSTest {
 
         credits = new SpaceCredits(sanctis);
         commanders = new Commanders(sanctis);
-        planets = new Planets(sanctis, COLONIZATION_COST);
+        planets = new Planets(sanctis);
         fleets = new Fleets(sanctis);
         wrapper = new ResourceWrapper(sanctis);
+        colonize = new Colonize(sanctis, 0);
 
         sanctis.setParliamentExecutor(address(this));
 
@@ -101,6 +103,7 @@ contract ResourceWrapperTest is DSTest {
         sanctis.setAllowed(address(spatioports), true);
         sanctis.setAllowed(address(transporters), true);
         sanctis.setAllowed(address(wrapper), true);
+        sanctis.setAllowed(address(colonize), true);
         sanctis.setAllowed(address(this), true);
     }
 
@@ -108,8 +111,7 @@ contract ResourceWrapperTest is DSTest {
         uint256 homeworld = 1020;
         commanders.create("Tester", humans);
         commander = commanders.created();
-        credits.approve(address(planets), COLONIZATION_COST * 2);
-        planets.colonize(commander, homeworld);
+        colonize.colonize(commander, homeworld);
         iron.mint(homeworld, 10**27);
         spatioports.create(homeworld);
 
@@ -132,8 +134,7 @@ contract ResourceWrapperTest is DSTest {
     function testBurnToFleet() public {
         uint256 homeworld = 1020;
         commanders.create("Tester", humans);
-        credits.approve(address(planets), COLONIZATION_COST * 2);
-        planets.colonize(commanders.created(), homeworld);
+        colonize.colonize(commanders.created(), homeworld);
         iron.mint(homeworld, 10**27);
         spatioports.create(homeworld);
 

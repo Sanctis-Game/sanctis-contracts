@@ -24,20 +24,15 @@ contract Planets is IPlanets, SanctisExtension {
     /* ========== Contract variables ========== */
     uint8 constant PLANET_STATUS_UNKNOWN = 0;
     uint8 constant PLANET_STATUS_UNCHARTED = 1;
-    uint8 constant PLANET_STATUS_COLONIZED = 2;
-    uint8 constant PLANET_STATUS_SANCTIS = 3;
+    uint8 constant PLANET_STATUS_SANCTIS = 2;
+    uint8 constant PLANET_STATUS_COLONIZED = 3;
 
-    mapping(uint256 => Planet) private _planets;
-    mapping(uint256 => EnumerableSet.UintSet) _commanderPlanets;
-    uint256 public colonizationCost;
+    mapping(uint256 => Planet) private s_planets;
+    mapping(uint256 => EnumerableSet.UintSet) s_commanderPlanets;
 
-    constructor(ISanctis newSanctis, uint256 cost)
-        SanctisExtension(PLANETS, newSanctis)
-    {
-        colonizationCost = cost;
-
+    constructor(ISanctis newSanctis) SanctisExtension(PLANETS, newSanctis) {
         // Placing the Sanctis at the center of the universe
-        _planets[0] = Planet({
+        s_planets[0] = Planet({
             status: PLANET_STATUS_SANCTIS,
             ruler: 0,
             x: 0,
@@ -49,14 +44,10 @@ contract Planets is IPlanets, SanctisExtension {
         emit Changed({id: 0, ruler: 0, status: PLANET_STATUS_SANCTIS});
     }
 
-    function setColonizationCost(uint256 newCost) public onlyExecutor {
-        colonizationCost = newCost;
-    }
-
     function create(uint256 planetId) public {
         require(planetId <= type(uint240).max, "Planets: ID");
         require(
-            _planets[planetId].status == PLANET_STATUS_UNKNOWN,
+            s_planets[planetId].status == PLANET_STATUS_UNKNOWN,
             "Planets: Exists"
         );
 
@@ -65,7 +56,7 @@ contract Planets is IPlanets, SanctisExtension {
         unchecked {
             humidity = uint8(seed);
         }
-        _planets[uint256(planetId)] = Planet({
+        s_planets[uint256(planetId)] = Planet({
             status: PLANET_STATUS_UNCHARTED,
             ruler: 0,
             x: int80(int256(planetId & 0xFFFFF)),
@@ -77,42 +68,12 @@ contract Planets is IPlanets, SanctisExtension {
         emit Changed({id: planetId, ruler: 0, status: PLANET_STATUS_UNCHARTED});
     }
 
-    function colonize(uint256 ruler, uint256 planetId) external {
-        if (_planets[planetId].status == PLANET_STATUS_UNKNOWN)
-            create(planetId);
-        require(
-            _planets[planetId].status == PLANET_STATUS_UNCHARTED,
-            "Planets: Colonized"
-        );
-        require(
-            ICommanders(s_sanctis.extension(COMMANDERS)).ownerOf(ruler) ==
-                msg.sender,
-            "Planets: Owner"
-        );
-
-        _planets[planetId].ruler = ruler;
-        _planets[planetId].status = PLANET_STATUS_COLONIZED;
-        _commanderPlanets[ruler].add(planetId);
-
-        ISpaceCredits(s_sanctis.extension(CREDITS)).transferFrom(
-            msg.sender,
-            s_sanctis.parliamentExecutor(),
-            colonizationCost
-        );
-
-        emit Changed({
-            id: planetId,
-            ruler: ruler,
-            status: PLANET_STATUS_COLONIZED
-        });
-    }
-
     function planet(uint256 planetId) external view returns (Planet memory) {
-        return _planets[planetId];
+        return s_planets[planetId];
     }
 
     function empireSize(uint256 commanderId) external view returns (uint256) {
-        return _commanderPlanets[commanderId].length();
+        return s_commanderPlanets[commanderId].length();
     }
 
     function commanderPlanetByIndex(uint256 commanderId, uint256 index)
@@ -120,7 +81,7 @@ contract Planets is IPlanets, SanctisExtension {
         view
         returns (uint256)
     {
-        return _commanderPlanets[commanderId].at(index);
+        return s_commanderPlanets[commanderId].at(index);
     }
 
     function distance(uint256 from, uint256 to)
@@ -128,8 +89,8 @@ contract Planets is IPlanets, SanctisExtension {
         view
         returns (uint256)
     {
-        Planet memory a = _planets[from];
-        Planet memory b = _planets[to];
+        Planet memory a = s_planets[from];
+        Planet memory b = s_planets[to];
         return
             FixedPointMathLib.sqrt(
                 uint256(int256((b.x - a.x)**2)) +
@@ -143,8 +104,8 @@ contract Planets is IPlanets, SanctisExtension {
         uint256 ruler,
         uint8 status
     ) public onlyAllowed {
-        _planets[planetId].ruler = ruler;
-        _planets[planetId].status = status;
+        s_planets[planetId].ruler = ruler;
+        s_planets[planetId].status = status;
 
         emit Changed({
             id: planetId,

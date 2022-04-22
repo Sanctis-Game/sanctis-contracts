@@ -15,6 +15,7 @@ import "../races/Humans.sol";
 import "../resources/Resource.sol";
 import "../resources/Energy.sol";
 import "../infrastructures/PowerPlants.sol";
+import "../modules/Colonize.sol";
 
 interface CheatCodes {
     // Sets the *next* call's msg.sender to be the input address, and the tx.origin to be the second input
@@ -45,6 +46,7 @@ contract InfrastructuresTest is DSTest {
     Resource iron;
     Resource silicon;
     Energy energy;
+    Colonize colonize;
 
     address player = address(65484632654);
     address notPlayer = address(65484632656);
@@ -55,11 +57,12 @@ contract InfrastructuresTest is DSTest {
         sanctis = new Sanctis();
         credits = new SpaceCredits(sanctis);
         commanders = new Commanders(sanctis);
-        planets = new Planets(sanctis, 0);
+        planets = new Planets(sanctis);
         humans = new Humans(sanctis);
         iron = new Resource(sanctis, "Iron", "IRON");
         silicon = new Resource(sanctis, "Silicon", "SILI");
         energy = new Energy(sanctis);
+        colonize = new Colonize(sanctis, 0);
 
         sanctis.setParliamentExecutor(address(this));
         sanctis.insertAndAllowExtension(credits);
@@ -68,12 +71,13 @@ contract InfrastructuresTest is DSTest {
         sanctis.setAllowed(address(humans), true);
         sanctis.setAllowed(address(iron), true);
         sanctis.setAllowed(address(energy), true);
+        sanctis.setAllowed(address(colonize), true);
         sanctis.setAllowed(address(this), true);
 
         cheats.startPrank(player, player);
         commanders.create("Tester", humans);
         commanderId = commanders.created();
-        planets.colonize(commanderId, homeworld);
+        colonize.colonize(commanderId, homeworld);
         cheats.stopPrank();
     }
 

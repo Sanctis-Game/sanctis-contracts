@@ -20,8 +20,8 @@ contract Fleets is IFleets, SanctisExtension {
     /* ========== Contract variables ========== */
     uint8 constant PLANET_STATUS_UNKNOWN = 0;
     uint8 constant PLANET_STATUS_UNCHARTED = 1;
-    uint8 constant PLANET_STATUS_COLONIZED = 2;
-    uint8 constant PLANET_STATUS_SANCTIS = 3;
+    uint8 constant PLANET_STATUS_SANCTIS = 2;
+    uint8 constant PLANET_STATUS_COLONIZED = 3;
 
     uint256 constant FLEET_STATUS_PREPARING = 0;
     uint256 constant FLEET_STATUS_ORBITING = 1;
