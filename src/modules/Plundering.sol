@@ -47,26 +47,30 @@ contract Plundering is IPlundering, SanctisModule {
             .fleet(fleetId);
 
         _assertApprovedCommander(targetFleet.commander, msg.sender);
-        if (targetFleet.status != FLEET_STATUS_ORBITING)
-            revert IFleets.InvalidFleetStatus({
-                fleetId: fleetId,
-                status: targetFleet.status
-            });
+        require(
+            targetFleet.status == FLEET_STATUS_ORBITING,
+            "Plundering: Status"
+        );
 
         IPlanets.Planet memory targetPlanet = IPlanets(
             s_sanctis.extension(PLANETS)
         ).planet(targetFleet.fromPlanetId);
-        if (targetPlanet.status != PLANET_STATUS_COLONIZED)
-            revert IPlanets.InvalidPlanet({planet: targetFleet.fromPlanetId});
-        if (
-            s_lastPlundering[targetFleet.fromPlanetId] + s_plunderPeriod >
-            block.number
-        ) revert PlunderingTooEarly({planetId: targetFleet.fromPlanetId});
+        require(
+            targetPlanet.status == PLANET_STATUS_COLONIZED,
+            "Plundering: Status"
+        );
+        require(
+            s_lastPlundering[targetFleet.fromPlanetId] + s_plunderPeriod <=
+                block.number,
+            "Plundering: Too soon"
+        );
 
         (, uint256 planetDefensivePower) = IFleets(s_sanctis.extension(FLEETS))
             .planet(targetFleet.fromPlanetId);
-        if (targetFleet.totalOffensivePower <= planetDefensivePower)
-            revert FleetTooWeak({fleetId: fleetId});
+        require(
+            targetFleet.totalOffensivePower > planetDefensivePower,
+            "Plundering: Fleet weak"
+        );
 
         s_lastPlundering[targetFleet.fromPlanetId] = block.number;
         uint256 plunderAmount = (resource.reserve(targetFleet.fromPlanetId) *
@@ -82,23 +86,20 @@ contract Plundering is IPlundering, SanctisModule {
         );
     }
 
-    function defendPlanet(uint256 planetId, uint256 fleetId) external {
+    function defendPlanet(uint256 fleetId) external {
         IFleets.Fleet memory targetFleet = IFleets(s_sanctis.extension(FLEETS))
             .fleet(fleetId);
         (uint256 planetOffensivePower, ) = IFleets(s_sanctis.extension(FLEETS))
             .planet(targetFleet.fromPlanetId);
         _assertApprovedCommander(targetFleet.commander, msg.sender);
-        if (planetOffensivePower < targetFleet.totalDefensivePower)
-            revert PlanetTooWeak({
-                planetId: planetId,
-                received: planetOffensivePower,
-                required: targetFleet.totalDefensivePower
-            });
-        if (targetFleet.status != FLEET_STATUS_ORBITING)
-            revert IFleets.InvalidFleetStatus({
-                fleetId: fleetId,
-                status: targetFleet.status
-            });
+        require(
+            planetOffensivePower >= targetFleet.totalDefensivePower,
+            "Plundering: Planet weak"
+        );
+        require(
+            targetFleet.status == FLEET_STATUS_ORBITING,
+            "Plundering: Status"
+        );
 
         targetFleet.status = FLEET_STATUS_DESTROYED;
         IFleets(s_sanctis.extension(FLEETS)).setFleet(fleetId, targetFleet);
@@ -130,11 +131,12 @@ contract Plundering is IPlundering, SanctisModule {
         internal
         view
     {
-        if (
-            !ICommanders(s_sanctis.extension(COMMANDERS)).isApproved(
+        require(
+            ICommanders(s_sanctis.extension(COMMANDERS)).isApproved(
                 caller,
                 commanderId
-            )
-        ) revert IFleets.NotCommanderOwner({commanderId: commanderId});
+            ),
+            "Plundering: Not approved"
+        );
     }
 }

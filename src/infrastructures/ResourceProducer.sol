@@ -39,8 +39,10 @@ contract ResourceProducer is Infrastructure, IResourceProducer {
 
     /* ========== Extractor interfaces ========== */
     function harvest(uint256 planetId) public {
-        if (s_infrastructures[planetId].level == 0)
-            revert ExtractorExistence({planetId: planetId});
+        require(
+            s_infrastructures[planetId].level > 0,
+            "ResourceProducer: Level"
+        );
 
         uint256[] memory harvestable = _production(
             s_infrastructures[planetId].level
@@ -96,11 +98,10 @@ contract ResourceProducer is Infrastructure, IResourceProducer {
     /* ========== Helpers ========== */
     function _planetHasResource(uint256 planetId) internal view {
         for (uint256 i = 0; i < s_rewardsBase.length; i++)
-            if (!s_rewardsResources[i].isAvailableOnPlanet(planetId))
-                revert ResourceNotOnPlanet({
-                    planetId: planetId,
-                    resource: s_rewardsResources[i]
-                });
+            require(
+                s_rewardsResources[i].isAvailableOnPlanet(planetId),
+                "ResourceProducer: Resource"
+            );
     }
 
     function _production(uint256 infraLevel)

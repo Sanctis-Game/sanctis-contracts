@@ -5,12 +5,6 @@ import "../ISanctisModule.sol";
 import "../resources/IResource.sol";
 
 interface IShip is ISanctisModule {
-    error UnauthorizedPlayer(address player, uint256 planet);
-    error UnallowedOperator(address operator);
-    error InvalidFleet(uint256 fleet);
-    error NotEnoughReserve(uint256 planet, uint256 amount);
-    error PlanetNotOwned(address player, uint256 planet);
-
     function speed() external view returns (uint256);
 
     function offensivePower() external view returns (uint256);

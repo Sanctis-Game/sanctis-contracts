@@ -7,10 +7,6 @@ import "../races/IRace.sol";
 import "../ISanctisExtension.sol";
 
 interface ICommanders is IERC721Metadata, ISanctisExtension {
-    error CommanderZero();
-    error NotTheCitadel(address caller);
-    error NotApproved(address caller);
-
     struct Commander {
         /// @notice Name of the citizen
         string name;

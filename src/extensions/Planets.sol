@@ -54,10 +54,11 @@ contract Planets is IPlanets, SanctisExtension {
     }
 
     function create(uint256 planetId) public {
-        if (planetId > type(uint240).max)
-            revert InvalidPlanet({planet: planetId});
-        if (_planets[planetId].status != PLANET_STATUS_UNKNOWN)
-            revert PlanetAlreadyExists({planet: planetId});
+        require(planetId <= type(uint240).max, "Planets: ID");
+        require(
+            _planets[planetId].status == PLANET_STATUS_UNKNOWN,
+            "Planets: Exists"
+        );
 
         uint256 seed = uint256(keccak256(abi.encode(planetId)));
         uint8 humidity;
@@ -79,16 +80,15 @@ contract Planets is IPlanets, SanctisExtension {
     function colonize(uint256 ruler, uint256 planetId) external {
         if (_planets[planetId].status == PLANET_STATUS_UNKNOWN)
             create(planetId);
-        else if (_planets[planetId].status != PLANET_STATUS_UNCHARTED)
-            revert PlanetAlreadyColonized({
-                planet: planetId,
-                status: _planets[planetId].status
-            });
-
-        if (
-            ICommanders(s_sanctis.extension(COMMANDERS)).ownerOf(ruler) !=
-            msg.sender
-        ) revert NotTheOwner({ruler: planetId});
+        require(
+            _planets[planetId].status == PLANET_STATUS_UNCHARTED,
+            "Planets: Colonized"
+        );
+        require(
+            ICommanders(s_sanctis.extension(COMMANDERS)).ownerOf(ruler) ==
+                msg.sender,
+            "Planets: Owner"
+        );
 
         _planets[planetId].ruler = ruler;
         _planets[planetId].status = PLANET_STATUS_COLONIZED;

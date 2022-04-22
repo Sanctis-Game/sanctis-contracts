@@ -4,11 +4,6 @@ pragma solidity 0.8.10;
 import "../ISanctisExtension.sol";
 
 interface IPlanets is ISanctisExtension {
-    error InvalidPlanet(uint256 planet);
-    error PlanetAlreadyExists(uint256 planet);
-    error PlanetAlreadyColonized(uint256 planet, uint8 status);
-    error NotTheOwner(uint256 ruler);
-
     event Changed(uint256 indexed id, uint256 indexed ruler, uint8 status);
 
     /// @notice Unknown planets have never been explored

@@ -70,5 +70,7 @@ contract PlanetsTest is DSTest {
         commanders.create("T", humans);
         credits.approve(address(planets), cost);
         planets.colonize(commanders.created(), homeworld);
+
+        assertEq(planets.planet(homeworld).ruler, commanders.created());
     }
 }

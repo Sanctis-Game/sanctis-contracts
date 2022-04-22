@@ -4,10 +4,6 @@ pragma solidity 0.8.10;
 import "./ISanctisModule.sol";
 
 contract SanctisModule is ISanctisModule {
-    error NotTheSanctis(address sender);
-    error NotTheExecutor(address sender);
-    error NotAllowed(address sender);
-
     ISanctis public s_sanctis;
 
     constructor(ISanctis _sanctis) {
@@ -15,20 +11,20 @@ contract SanctisModule is ISanctisModule {
     }
 
     modifier onlySanctis() {
-        if (address(s_sanctis) != msg.sender)
-            revert NotTheSanctis({sender: msg.sender});
+        require(address(s_sanctis) == msg.sender, "Module: Sanctis");
         _;
     }
 
     modifier onlyExecutor() {
-        if (s_sanctis.parliamentExecutor() != msg.sender)
-            revert NotTheExecutor({sender: msg.sender});
+        require(
+            s_sanctis.parliamentExecutor() == msg.sender,
+            "Module: Executor"
+        );
         _;
     }
 
     modifier onlyAllowed() {
-        if (!s_sanctis.allowed(msg.sender))
-            revert NotAllowed({sender: msg.sender});
+        require(s_sanctis.allowed(msg.sender), "Module: Allowed");
         _;
     }
 

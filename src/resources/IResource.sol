@@ -4,8 +4,6 @@ pragma solidity 0.8.10;
 import "../ISanctisModule.sol";
 
 interface IResource is ISanctisModule {
-    error Unallowed(address sender);
-
     event Mint(uint256 planet, uint256 amount);
 
     event Burn(uint256 planet, uint256 amount);

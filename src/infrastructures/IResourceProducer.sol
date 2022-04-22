@@ -4,8 +4,6 @@ pragma solidity 0.8.10;
 import "./IInfrastructure.sol";
 
 interface IResourceProducer is IInfrastructure {
-    error ExtractorExistence(uint256 planetId);
-
     function harvest(uint256 planetId) external;
 
     function lastHarvest(uint256 planetId) external view returns (uint256);

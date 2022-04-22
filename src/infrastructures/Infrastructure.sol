@@ -128,29 +128,27 @@ contract Infrastructure is IInfrastructure, SanctisModule {
     }
 
     function _assertInfrastructureExists(uint256 planetId) internal view {
-        if (s_infrastructures[planetId].level == 0)
-            revert InfrastructureDoesNotExist({
-                infrastructure: address(this),
-                planetId: planetId
-            });
+        require(
+            s_infrastructures[planetId].level >= 0,
+            "Infrastructure: Exists"
+        );
     }
 
     function _isPlanetOwner(address operator, uint256 planetId) internal view {
-        if (
-            !ICommanders(s_sanctis.extension(COMMANDERS)).isApproved(
+        require(
+            ICommanders(s_sanctis.extension(COMMANDERS)).isApproved(
                 operator,
                 IPlanets(s_sanctis.extension(PLANETS)).planet(planetId).ruler
-            )
-        ) revert PlanetNotOwned({planetId: planetId});
+            ),
+            "Infrastructure: Owned"
+        );
     }
 
     function _planetIsUpgradable(uint256 planetId) internal view {
-        uint256 soonestUpgrade = _nextUpgrade(planetId);
-        if (block.number < soonestUpgrade)
-            revert TooSoonToUpgrade({
-                planetId: planetId,
-                soonestUpgrade: soonestUpgrade
-            });
+        require(
+            block.number >= _nextUpgrade(planetId),
+            "Infrastructure: Too soon"
+        );
     }
 
     /* ========== Hooks ========== */

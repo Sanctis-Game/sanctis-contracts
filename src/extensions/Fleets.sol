@@ -28,25 +28,25 @@ contract Fleets is IFleets, SanctisExtension {
     uint256 constant FLEET_STATUS_TRAVELLING = 2;
     uint256 constant FLEET_STATUS_DESTROYED = 3;
 
-    uint256 internal _createdFleets;
-    mapping(uint256 => Fleet) internal _fleets;
-    mapping(uint256 => EnumerableSet.UintSet) internal _fleetsOnPlanet;
-    mapping(uint256 => uint256) internal _planetOffensivePower;
-    mapping(uint256 => uint256) internal _planetDefensivePower;
-    mapping(IResource => mapping(uint256 => uint256)) internal _stockPerFleet;
-    mapping(address => mapping(uint256 => uint256)) internal _shipsPerFleet;
+    uint256 internal s_createdFleets;
+    mapping(uint256 => Fleet) internal s_fleets;
+    mapping(uint256 => EnumerableSet.UintSet) internal s_fleetsOnPlanet;
+    mapping(uint256 => uint256) internal s_planetOffensivePower;
+    mapping(uint256 => uint256) internal s_planetDefensivePower;
+    mapping(IResource => mapping(uint256 => uint256)) internal s_stockPerFleet;
+    mapping(address => mapping(uint256 => uint256)) internal s_shipsPerFleet;
 
     constructor(ISanctis newSanctis) SanctisExtension(FLEETS, newSanctis) {}
 
     /* ========== Fleets interfaces ========== */
     function fleet(uint256 fleetId) external view returns (Fleet memory) {
-        return _fleets[fleetId];
+        return s_fleets[fleetId];
     }
 
     function planet(uint256 planetId) external view returns (uint256, uint256) {
         return (
-            _planetOffensivePower[planetId],
-            _planetDefensivePower[planetId]
+            s_planetOffensivePower[planetId],
+            s_planetDefensivePower[planetId]
         );
     }
 
@@ -55,11 +55,11 @@ contract Fleets is IFleets, SanctisExtension {
         view
         returns (uint256)
     {
-        return _shipsPerFleet[address(ship)][fleetId];
+        return s_shipsPerFleet[address(ship)][fleetId];
     }
 
     function fleetsOnPlanet(uint256 planetId) external view returns (uint256) {
-        return _fleetsOnPlanet[planetId].length();
+        return s_fleetsOnPlanet[planetId].length();
     }
 
     function fleetOnPlanetByIndex(uint256 planetId, uint256 index)
@@ -67,7 +67,7 @@ contract Fleets is IFleets, SanctisExtension {
         view
         returns (uint256)
     {
-        return _fleetsOnPlanet[planetId].at(index);
+        return s_fleetsOnPlanet[planetId].at(index);
     }
 
     function resourceInFleet(IResource resource, uint256 fleetId)
@@ -75,20 +75,19 @@ contract Fleets is IFleets, SanctisExtension {
         view
         returns (uint256)
     {
-        return _stockPerFleet[resource][fleetId];
+        return s_stockPerFleet[resource][fleetId];
     }
 
     function createFleet(uint256 commanderId, uint256 planetId) public {
-        uint256 fleetId = _createdFleets++;
-        Fleet memory targetFleet = _fleets[fleetId];
+        uint256 fleetId = s_createdFleets++;
+        Fleet memory targetFleet = s_fleets[fleetId];
 
-        if (targetFleet.commander != 0)
-            revert AlreadyExists({fleetId: fleetId});
-
-        if (
-            IPlanets(s_sanctis.extension(PLANETS)).planet(planetId).ruler !=
-            commanderId
-        ) revert NotRuler({commanderId: commanderId, planetId: planetId});
+        require(targetFleet.commander == 0, "Fleets: Exists");
+        require(
+            IPlanets(s_sanctis.extension(PLANETS)).planet(planetId).ruler ==
+                commanderId,
+            "Fleets: Planet ruler"
+        );
 
         targetFleet.commander = commanderId;
         targetFleet.fromPlanetId = planetId;
@@ -100,8 +99,8 @@ contract Fleets is IFleets, SanctisExtension {
         targetFleet.ships = 0;
         targetFleet.arrivalBlock = 0;
         targetFleet.status = FLEET_STATUS_PREPARING;
-        _fleets[fleetId] = targetFleet;
-        _fleetsOnPlanet[planetId].add(fleetId);
+        s_fleets[fleetId] = targetFleet;
+        s_fleetsOnPlanet[planetId].add(fleetId);
 
         emit Moved({
             fleet: fleetId,
@@ -116,30 +115,26 @@ contract Fleets is IFleets, SanctisExtension {
         IShip ship,
         uint256 amount
     ) public {
-        Fleet memory targetFleet = _fleets[fleetId];
+        Fleet memory targetFleet = s_fleets[fleetId];
 
-        _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
+        _assertApprovedCommander(s_fleets[fleetId].commander, msg.sender);
         _assertIsOnRuledPlanet(fleetId);
-        if (targetFleet.status != FLEET_STATUS_PREPARING)
-            revert InvalidFleetStatus({
-                fleetId: fleetId,
-                status: targetFleet.status
-            });
+        require(targetFleet.status == FLEET_STATUS_PREPARING, "Fleets: Status");
 
         targetFleet.totalSpeed += amount * ship.speed();
         targetFleet.totalOffensivePower += amount * ship.offensivePower();
-        _planetOffensivePower[targetFleet.fromPlanetId] +=
+        s_planetOffensivePower[targetFleet.fromPlanetId] +=
             amount *
             ship.offensivePower();
         targetFleet.totalDefensivePower += amount * ship.defensivePower();
-        _planetDefensivePower[targetFleet.fromPlanetId] +=
+        s_planetDefensivePower[targetFleet.fromPlanetId] +=
             amount *
             ship.defensivePower();
         targetFleet.capacity += amount * ship.capacity();
         targetFleet.ships += amount;
-        _fleets[fleetId] = targetFleet;
+        s_fleets[fleetId] = targetFleet;
 
-        _shipsPerFleet[address(ship)][fleetId] += amount;
+        s_shipsPerFleet[address(ship)][fleetId] += amount;
         ship.burn(targetFleet.fromPlanetId, amount);
     }
 
@@ -148,50 +143,42 @@ contract Fleets is IFleets, SanctisExtension {
         IShip ship,
         uint256 amount
     ) public {
-        Fleet memory targetFleet = _fleets[fleetId];
+        Fleet memory targetFleet = s_fleets[fleetId];
 
-        _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
+        _assertApprovedCommander(s_fleets[fleetId].commander, msg.sender);
         _assertIsOnRuledPlanet(fleetId);
-        if (targetFleet.status != FLEET_STATUS_PREPARING)
-            revert InvalidFleetStatus({
-                fleetId: fleetId,
-                status: targetFleet.status
-            });
+        require(targetFleet.status == FLEET_STATUS_PREPARING, "Fleets: Status");
 
         targetFleet.totalSpeed -= amount * ship.speed();
         targetFleet.totalOffensivePower -= amount * ship.offensivePower();
-        _planetOffensivePower[targetFleet.fromPlanetId] -=
+        s_planetOffensivePower[targetFleet.fromPlanetId] -=
             amount *
             ship.offensivePower();
         targetFleet.totalDefensivePower -= amount * ship.defensivePower();
-        _planetDefensivePower[targetFleet.fromPlanetId] -=
+        s_planetDefensivePower[targetFleet.fromPlanetId] -=
             amount *
             ship.defensivePower();
         targetFleet.capacity -= amount * ship.capacity();
         targetFleet.ships -= amount;
-        _fleets[fleetId] = targetFleet;
+        s_fleets[fleetId] = targetFleet;
 
-        _shipsPerFleet[address(ship)][fleetId] -= amount;
+        s_shipsPerFleet[address(ship)][fleetId] -= amount;
         ship.mint(targetFleet.fromPlanetId, amount);
     }
 
     function putInOrbit(uint256 fleetId) external {
-        Fleet memory targetFleet = _fleets[fleetId];
+        Fleet memory targetFleet = s_fleets[fleetId];
 
-        _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
+        _assertApprovedCommander(s_fleets[fleetId].commander, msg.sender);
         _assertIsOnRuledPlanet(fleetId);
-        if (targetFleet.status != FLEET_STATUS_PREPARING)
-            revert InvalidFleetStatus({
-                fleetId: fleetId,
-                status: targetFleet.status
-            });
-        if (targetFleet.ships == 0) revert EmptyFleet({fleetId: fleetId});
+        require(targetFleet.status == FLEET_STATUS_PREPARING, "Fleets: Status");
+        require(targetFleet.ships > 0, "Fleets: Empty fleet");
 
         targetFleet.status = FLEET_STATUS_ORBITING;
-        _fleets[fleetId] = targetFleet;
-        _planetOffensivePower[targetFleet.fromPlanetId] -= targetFleet
+        s_fleets[fleetId] = targetFleet;
+        s_planetOffensivePower[targetFleet.fromPlanetId] -= targetFleet
             .totalOffensivePower;
-        _planetDefensivePower[targetFleet.fromPlanetId] -= targetFleet
+        s_planetDefensivePower[targetFleet.fromPlanetId] -= targetFleet
             .totalDefensivePower;
 
         emit Moved({
@@ -203,21 +190,17 @@ contract Fleets is IFleets, SanctisExtension {
     }
 
     function land(uint256 fleetId) external {
-        Fleet memory targetFleet = _fleets[fleetId];
+        Fleet memory targetFleet = s_fleets[fleetId];
 
-        _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
+        _assertApprovedCommander(s_fleets[fleetId].commander, msg.sender);
         _assertIsOnRuledPlanet(fleetId);
-        if (targetFleet.status != FLEET_STATUS_ORBITING)
-            revert InvalidFleetStatus({
-                fleetId: fleetId,
-                status: targetFleet.status
-            });
+        require(targetFleet.status == FLEET_STATUS_ORBITING, "Fleets: Status");
 
         targetFleet.status = FLEET_STATUS_PREPARING;
-        _fleets[fleetId] = targetFleet;
-        _planetOffensivePower[targetFleet.fromPlanetId] += targetFleet
+        s_fleets[fleetId] = targetFleet;
+        s_planetOffensivePower[targetFleet.fromPlanetId] += targetFleet
             .totalOffensivePower;
-        _planetDefensivePower[targetFleet.fromPlanetId] += targetFleet
+        s_planetDefensivePower[targetFleet.fromPlanetId] += targetFleet
             .totalDefensivePower;
 
         emit Moved({
@@ -229,20 +212,15 @@ contract Fleets is IFleets, SanctisExtension {
     }
 
     function moveFleet(uint256 fleetId, uint256 toPlanetId) external {
-        Fleet memory targetFleet = _fleets[fleetId];
+        Fleet memory targetFleet = s_fleets[fleetId];
 
-        _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
-        if (targetFleet.status != FLEET_STATUS_ORBITING)
-            revert InvalidFleetStatus({
-                fleetId: fleetId,
-                status: targetFleet.status
-            });
+        _assertApprovedCommander(s_fleets[fleetId].commander, msg.sender);
+        require(targetFleet.status == FLEET_STATUS_ORBITING, "Fleets: Status");
 
         IPlanets.Planet memory targetPlanet = IPlanets(
             s_sanctis.extension(PLANETS)
         ).planet(toPlanetId);
-        if (targetPlanet.status == PLANET_STATUS_UNKNOWN)
-            revert IPlanets.InvalidPlanet({planet: toPlanetId});
+        require(targetPlanet.status != PLANET_STATUS_UNKNOWN, "Fleets: Planet");
 
         targetFleet.status = FLEET_STATUS_TRAVELLING;
         targetFleet.toPlanetId = toPlanetId;
@@ -254,8 +232,8 @@ contract Fleets is IFleets, SanctisExtension {
             ) /
             (targetFleet.totalSpeed / targetFleet.ships);
 
-        _fleets[fleetId] = targetFleet;
-        _fleetsOnPlanet[targetFleet.fromPlanetId].remove(fleetId);
+        s_fleets[fleetId] = targetFleet;
+        s_fleetsOnPlanet[targetFleet.fromPlanetId].remove(fleetId);
 
         emit Moved({
             fleet: fleetId,
@@ -266,18 +244,19 @@ contract Fleets is IFleets, SanctisExtension {
     }
 
     function settleFleet(uint256 fleetId) external {
-        Fleet memory targetFleet = _fleets[fleetId];
+        Fleet memory targetFleet = s_fleets[fleetId];
 
-        if (
-            targetFleet.status != FLEET_STATUS_TRAVELLING &&
-            targetFleet.arrivalBlock > block.number
-        ) revert NotArrivedYet({fleetId: fleetId});
+        require(
+            targetFleet.status == FLEET_STATUS_TRAVELLING &&
+                targetFleet.arrivalBlock <= block.number,
+            "Fleets: Not arrived"
+        );
 
         targetFleet.status = FLEET_STATUS_ORBITING;
         targetFleet.fromPlanetId = targetFleet.toPlanetId;
 
-        _fleets[fleetId] = targetFleet;
-        _fleetsOnPlanet[targetFleet.fromPlanetId].add(fleetId);
+        s_fleets[fleetId] = targetFleet;
+        s_fleetsOnPlanet[targetFleet.fromPlanetId].add(fleetId);
 
         emit Moved({
             fleet: fleetId,
@@ -292,20 +271,17 @@ contract Fleets is IFleets, SanctisExtension {
         IResource resource,
         uint256 amount
     ) external {
-        _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
+        _assertApprovedCommander(s_fleets[fleetId].commander, msg.sender);
         _assertIsOnRuledPlanet(fleetId);
-        if (
-            _fleets[fleetId].status != FLEET_STATUS_PREPARING &&
-            _fleets[fleetId].status != FLEET_STATUS_ORBITING
-        )
-            revert InvalidFleetStatus({
-                fleetId: fleetId,
-                status: _fleets[fleetId].status
-            });
+        require(
+            s_fleets[fleetId].status == FLEET_STATUS_PREPARING ||
+                s_fleets[fleetId].status == FLEET_STATUS_ORBITING,
+            "Fleets: Status"
+        );
 
-        _fleets[fleetId].capacity -= amount;
-        _stockPerFleet[resource][fleetId] += amount;
-        resource.burn(_fleets[fleetId].fromPlanetId, amount);
+        s_fleets[fleetId].capacity -= amount;
+        s_stockPerFleet[resource][fleetId] += amount;
+        resource.burn(s_fleets[fleetId].fromPlanetId, amount);
     }
 
     function unload(
@@ -313,19 +289,16 @@ contract Fleets is IFleets, SanctisExtension {
         IResource resource,
         uint256 amount
     ) external {
-        _assertApprovedCommander(_fleets[fleetId].commander, msg.sender);
-        if (
-            _fleets[fleetId].status != FLEET_STATUS_PREPARING &&
-            _fleets[fleetId].status != FLEET_STATUS_ORBITING
-        )
-            revert InvalidFleetStatus({
-                fleetId: fleetId,
-                status: _fleets[fleetId].status
-            });
+        _assertApprovedCommander(s_fleets[fleetId].commander, msg.sender);
+        require(
+            s_fleets[fleetId].status == FLEET_STATUS_PREPARING ||
+                s_fleets[fleetId].status == FLEET_STATUS_ORBITING,
+            "Fleets: Status"
+        );
 
-        _fleets[fleetId].capacity += amount;
-        _stockPerFleet[resource][fleetId] -= amount;
-        resource.mint(_fleets[fleetId].fromPlanetId, amount);
+        s_fleets[fleetId].capacity += amount;
+        s_stockPerFleet[resource][fleetId] -= amount;
+        resource.mint(s_fleets[fleetId].fromPlanetId, amount);
     }
 
     function allowedLoad(
@@ -333,9 +306,9 @@ contract Fleets is IFleets, SanctisExtension {
         IResource resource,
         uint256 amount
     ) external onlyAllowed {
-        _fleets[fleetId].capacity -= amount;
-        _stockPerFleet[resource][fleetId] += amount;
-        resource.burn(_fleets[fleetId].fromPlanetId, amount);
+        s_fleets[fleetId].capacity -= amount;
+        s_stockPerFleet[resource][fleetId] += amount;
+        resource.burn(s_fleets[fleetId].fromPlanetId, amount);
     }
 
     function allowedUnload(
@@ -343,16 +316,16 @@ contract Fleets is IFleets, SanctisExtension {
         IResource resource,
         uint256 amount
     ) external onlyAllowed {
-        _fleets[fleetId].capacity += amount;
-        _stockPerFleet[resource][fleetId] -= amount;
-        resource.mint(_fleets[fleetId].fromPlanetId, amount);
+        s_fleets[fleetId].capacity += amount;
+        s_stockPerFleet[resource][fleetId] -= amount;
+        resource.mint(s_fleets[fleetId].fromPlanetId, amount);
     }
 
     function setFleet(uint256 fleetId, Fleet memory newFleet)
         external
         onlyAllowed
     {
-        _fleets[fleetId] = newFleet;
+        s_fleets[fleetId] = newFleet;
     }
 
     /* ========== Assertions ========== */
@@ -361,24 +334,22 @@ contract Fleets is IFleets, SanctisExtension {
         internal
         view
     {
-        if (
-            !ICommanders(s_sanctis.extension(COMMANDERS)).isApproved(
+        require(
+            ICommanders(s_sanctis.extension(COMMANDERS)).isApproved(
                 caller,
                 commanderId
-            )
-        ) revert NotCommanderOwner({commanderId: commanderId});
+            ),
+            "Fleets: Commander"
+        );
     }
 
     /// @notice Asserts that the planet the fleet is on is controlled by the fleet controller
     function _assertIsOnRuledPlanet(uint256 fleetId) internal view {
-        if (
+        require(
             IPlanets(s_sanctis.extension(PLANETS))
-                .planet(_fleets[fleetId].fromPlanetId)
-                .ruler != _fleets[fleetId].commander
-        )
-            revert NotRuler({
-                commanderId: _fleets[fleetId].commander,
-                planetId: _fleets[fleetId].fromPlanetId
-            });
+                .planet(s_fleets[fleetId].fromPlanetId)
+                .ruler == s_fleets[fleetId].commander,
+            "Fleets: Approved"
+        );
     }
 }

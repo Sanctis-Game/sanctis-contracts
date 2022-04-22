@@ -5,15 +5,6 @@ import "../ISanctisExtension.sol";
 import "../ships/IShip.sol";
 
 interface IFleets is ISanctisExtension {
-    error NotCommanderOwner(uint256 commanderId);
-    error NotRuler(uint256 commanderId, uint256 planetId);
-    error InvalidFleetStatus(uint256 fleetId, uint256 status);
-    error NotEnoughCapacity(uint256 fleetId, uint256 capacity);
-    error AlreadyExists(uint256 fleetId);
-    error AlreadyMoving(uint256 fleetId);
-    error EmptyFleet(uint256 fleetId);
-    error NotArrivedYet(uint256 fleetId);
-
     event Moved(uint256 fleet, uint256 from, uint256 to, uint256 status);
 
     struct Fleet {
