@@ -19,7 +19,8 @@ contract Colonize is IColonize, SanctisModule {
     uint8 constant PLANET_STATUS_SANCTIS = 2;
     uint8 constant PLANET_STATUS_COLONIZED = 3;
 
-    uint256 public s_colonizationCost;
+    /// @notice Cost to colonize a planet, paid to the Sanctis
+    uint256 internal s_colonizationCost;
 
     constructor(ISanctis newSanctis, uint256 cost) SanctisModule(newSanctis) {
         s_colonizationCost = cost;

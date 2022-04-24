@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "openzeppelin-contracts/contracts/utils/structs/EnumerableSet.sol";
-import "openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
-import "openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "solmate/utils/FixedPointMathLib.sol";
 
 import "../ISanctis.sol";
@@ -13,7 +10,6 @@ import "../extensions/ISpaceCredits.sol";
 import "../SanctisExtension.sol";
 
 contract Planets is IPlanets, SanctisExtension {
-    using EnumerableSet for EnumerableSet.UintSet;
     using FixedPointMathLib for uint256;
 
     /* ========== Sanctis extensions used ========== */
@@ -28,7 +24,6 @@ contract Planets is IPlanets, SanctisExtension {
     uint8 constant PLANET_STATUS_COLONIZED = 3;
 
     mapping(uint256 => Planet) private s_planets;
-    mapping(uint256 => EnumerableSet.UintSet) s_commanderPlanets;
 
     constructor(ISanctis newSanctis) SanctisExtension(PLANETS, newSanctis) {
         // Placing the Sanctis at the center of the universe
@@ -70,18 +65,6 @@ contract Planets is IPlanets, SanctisExtension {
 
     function planet(uint256 planetId) external view returns (Planet memory) {
         return s_planets[planetId];
-    }
-
-    function empireSize(uint256 commanderId) external view returns (uint256) {
-        return s_commanderPlanets[commanderId].length();
-    }
-
-    function commanderPlanetByIndex(uint256 commanderId, uint256 index)
-        external
-        view
-        returns (uint256)
-    {
-        return s_commanderPlanets[commanderId].at(index);
     }
 
     function distance(uint256 from, uint256 to)

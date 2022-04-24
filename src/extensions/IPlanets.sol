@@ -35,12 +35,5 @@ interface IPlanets is ISanctisExtension {
 
     function planet(uint256 planetId) external view returns (Planet memory);
 
-    function empireSize(uint256 commanderId) external view returns (uint256);
-
-    function commanderPlanetByIndex(uint256 commanderId, uint256 index)
-        external
-        view
-        returns (uint256);
-
     function distance(uint256 from, uint256 to) external view returns (uint256);
 }
